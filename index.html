@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>觀梅 · 梅花易數起卦</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12141a;
+    --bg2:#1b1e26;
+    --paper:#ece3cd;
+    --paper-shadow:#c9bd9c;
+    --ink:#2a251e;
+    --cinnabar:#b7402a;
+    --gold:#c9a227;
+    --jade:#4c6b54;
+    --mist:#8b9099;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, #232838 0%, transparent 55%),
+      radial-gradient(ellipse at 100% 100%, #1a2a24 0%, transparent 50%),
+      var(--bg);
+    color:var(--mist);
+    font-family:'Noto Sans TC', sans-serif;
+    min-height:100vh;
+    padding:48px 20px 80px;
+  }
+  .wrap{max-width:760px;margin:0 auto;}
+
+  header{text-align:center;margin-bottom:52px;}
+  .eyebrow{
+    font-size:12px;letter-spacing:0.35em;color:var(--gold);
+    text-transform:uppercase;font-weight:500;margin-bottom:14px;
+  }
+  h1{
+    font-family:'Noto Serif TC',serif;font-weight:700;
+    font-size:42px;color:#f2ead6;letter-spacing:0.08em;
+    margin-bottom:10px;
+  }
+  header p{font-size:14px;color:var(--mist);letter-spacing:0.02em;line-height:1.8;}
+
+  .card{
+    background:linear-gradient(180deg,#181c24,#14171e);
+    border:1px solid #2a2f3a;
+    border-radius:4px;
+    padding:36px;
+    margin-bottom:28px;
+  }
+
+  label.field-label{
+    display:block;font-size:12px;color:var(--gold);letter-spacing:0.15em;
+    margin-bottom:10px;text-transform:uppercase;
+  }
+  textarea{
+    width:100%;background:#0e1015;border:1px solid #2a2f3a;border-radius:3px;
+    color:#e8e2d0;font-family:'Noto Sans TC',sans-serif;font-size:15px;
+    padding:14px 16px;min-height:70px;resize:vertical;line-height:1.7;
+    outline:none;transition:border-color .25s;
+  }
+  textarea:focus{border-color:var(--gold);}
+  textarea::placeholder{color:#565b66;}
+
+  .chips{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0 26px;}
+  .chip{
+    padding:8px 18px;border:1px solid #333846;border-radius:999px;
+    font-size:13px;color:var(--mist);cursor:pointer;user-select:none;
+    transition:all .2s;background:transparent;
+  }
+  .chip:hover{border-color:var(--gold);color:var(--gold);}
+  .chip.active{background:var(--cinnabar);border-color:var(--cinnabar);color:#f2ead6;}
+
+  .time-toggle{display:flex;gap:10px;margin-bottom:14px;}
+  .ttoggle{
+    flex:1;text-align:center;padding:10px 14px;border:1px solid #333846;border-radius:3px;
+    font-size:13px;color:var(--mist);cursor:pointer;user-select:none;transition:all .2s;
+    letter-spacing:0.08em;
+  }
+  .ttoggle:hover{border-color:var(--gold);color:var(--gold);}
+  .ttoggle.active{background:rgba(201,162,39,0.12);border-color:var(--gold);color:var(--gold);}
+  .time-input{
+    display:none;width:100%;background:#0e1015;border:1px solid #2a2f3a;border-radius:3px;
+    color:#e8e2d0;font-family:'Noto Sans TC',sans-serif;font-size:14px;
+    padding:12px 14px;margin-bottom:22px;outline:none;transition:border-color .25s;
+    color-scheme:dark;
+  }
+  .time-input:focus{border-color:var(--gold);}
+  .time-input.show{display:block;}
+
+  .cast-btn{
+    width:100%;padding:16px;background:var(--cinnabar);border:none;border-radius:3px;
+    color:#f2ead6;font-family:'Noto Serif TC',serif;font-size:17px;letter-spacing:0.25em;
+    cursor:pointer;transition:filter .2s, transform .1s;font-weight:600;
+  }
+  .cast-btn:hover{filter:brightness(1.12);}
+  .cast-btn:active{transform:scale(0.99);}
+  .cast-hint{text-align:center;font-size:12px;color:#565b66;margin-top:10px;letter-spacing:0.05em;}
+
+  /* ---- result ---- */
+  #result{display:none;}
+  .seal{
+    position:absolute;top:26px;right:26px;width:52px;height:52px;
+    border:2px solid var(--cinnabar);border-radius:6px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--cinnabar);font-family:'Noto Serif TC',serif;font-size:13px;
+    letter-spacing:2px;writing-mode:vertical-rl;opacity:0;transform:rotate(-6deg) scale(1.4);
+    transition:opacity .5s ease .9s, transform .5s ease .9s;
+  }
+  .seal.show{opacity:0.85;transform:rotate(-6deg) scale(1);}
+
+  .paper-card{
+    position:relative;background:var(--paper);border-radius:4px;
+    padding:38px 34px 30px;color:var(--ink);
+    box-shadow:0 18px 40px -14px rgba(0,0,0,0.55), inset 0 0 0 1px var(--paper-shadow);
+    margin-bottom:24px;
+  }
+  .gua-title{
+    font-family:'Noto Serif TC',serif;font-size:13px;letter-spacing:0.3em;
+    color:var(--cinnabar);text-transform:uppercase;margin-bottom:6px;
+  }
+  .lunar-line{font-size:12px;color:#6b6250;letter-spacing:0.08em;margin-bottom:22px;}
+
+  .hexblock{display:flex;gap:44px;align-items:flex-start;flex-wrap:wrap;}
+  .lines-col{display:flex;flex-direction:column-reverse;gap:10px;width:150px;}
+  .yao{position:relative;height:12px;}
+  .yao .bar{
+    position:absolute;top:0;height:12px;background:var(--ink);border-radius:2px;
+    width:0;transition:width .55s cubic-bezier(.2,.8,.2,1);
+  }
+  .yao .bar.left{left:0;}
+  .yao .bar.right{right:0;}
+  .yao.moving .bar{background:var(--cinnabar);}
+  .yao .mark{
+    position:absolute;right:-26px;top:-4px;color:var(--cinnabar);font-size:18px;
+    font-family:'Noto Serif TC',serif;opacity:0;transition:opacity .3s ease .6s;
+  }
+  .yao.moving .mark{opacity:1;}
+
+  .gua-meta{flex:1;min-width:200px;}
+  .gua-meta .row{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--paper-shadow);font-size:14px;}
+  .gua-meta .row:last-child{border-bottom:none;}
+  .gua-meta .k{color:#6b6250;letter-spacing:0.1em;font-size:12px;}
+  .gua-meta .v{font-family:'Noto Serif TC',serif;font-weight:600;font-size:16px;}
+  .tag-ti{color:var(--jade);}
+  .tag-yong{color:var(--cinnabar);}
+
+  .verdict-box{
+    margin:26px 0 20px;padding:22px 22px 6px;
+    background:rgba(76,107,84,0.06);border:1px solid var(--paper-shadow);border-radius:4px;
+  }
+  .vb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .vb-title{
+    font-family:'Noto Serif TC',serif;font-weight:700;font-size:16px;color:var(--ink);
+    letter-spacing:0.15em;
+  }
+  .vb-badge{
+    font-family:'Noto Serif TC',serif;font-weight:700;font-size:15px;
+    padding:5px 18px;border-radius:999px;letter-spacing:0.1em;
+  }
+  .vb-badge.lv-good{background:var(--jade);color:#f2ead6;}
+  .vb-badge.lv-mid{background:var(--gold);color:#2a251e;}
+  .vb-badge.lv-bad{background:var(--cinnabar);color:#f2ead6;}
+  .vb-row{margin-bottom:16px;}
+  .vb-k{
+    display:block;font-size:12px;color:var(--jade);letter-spacing:0.15em;
+    font-weight:600;margin-bottom:6px;
+  }
+  .vb-row p{font-size:14.5px;line-height:1.9;color:#3a3428;}
+  .vb-row p b{color:var(--cinnabar);font-family:'Noto Serif TC',serif;font-weight:600;}
+
+  .verdict{
+    display:flex;align-items:center;gap:14px;margin:0 0 18px;padding:14px 18px;
+    background:rgba(183,64,42,0.08);border-left:3px solid var(--cinnabar);border-radius:2px;
+  }
+  .verdict .lv{font-family:'Noto Serif TC',serif;font-size:20px;font-weight:700;color:var(--cinnabar);}
+  .verdict .rel{font-size:12.5px;color:#6b6250;letter-spacing:0.05em;}
+  .rel-label{color:#8a8069;margin-right:8px;padding-right:8px;border-right:1px solid var(--paper-shadow);}
+
+  .interp{font-size:15px;line-height:2;color:#3a3428;}
+  .interp b{color:var(--cinnabar);font-weight:600;}
+
+  .change-note{
+    margin-top:20px;padding-top:18px;border-top:1px solid var(--paper-shadow);
+    font-size:13px;color:#6b6250;line-height:1.9;
+  }
+  .change-note b{color:var(--ink);}
+
+  .calc-toggle{
+    margin-top:20px;padding-top:16px;border-top:1px solid var(--paper-shadow);
+    font-size:13px;color:var(--jade);cursor:pointer;user-select:none;
+    display:flex;align-items:center;gap:6px;letter-spacing:0.05em;
+  }
+  .calc-toggle:hover{color:var(--cinnabar);}
+  .calc-toggle .arrow{transition:transform .25s;font-size:10px;}
+  .calc-toggle.open .arrow{transform:rotate(180deg);}
+  .calc-panel{
+    display:none;margin-top:16px;padding:18px 20px;background:rgba(42,37,30,0.04);
+    border:1px solid var(--paper-shadow);border-radius:3px;
+  }
+  .calc-step{margin-bottom:14px;}
+  .calc-step:last-of-type{margin-bottom:0;}
+  .calc-label{
+    font-family:'Noto Serif TC',serif;font-size:12px;font-weight:600;color:var(--cinnabar);
+    letter-spacing:0.1em;margin-bottom:5px;
+  }
+  .calc-eq{
+    font-family:'SFMono-Regular',Consolas,'Noto Sans TC',monospace;font-size:13px;
+    color:#3a3428;line-height:1.9;word-break:break-all;
+  }
+  .calc-eq b{color:var(--jade);font-family:'Noto Serif TC',serif;}
+  .calc-note{
+    margin-top:14px;padding-top:12px;border-top:1px dashed var(--paper-shadow);
+    font-size:12px;color:#6b6250;letter-spacing:0.03em;line-height:1.8;
+  }
+
+  .disclaimer{text-align:center;font-size:12px;color:#464b56;margin-top:30px;letter-spacing:0.03em;line-height:1.8;}
+
+  @media (max-width:520px){
+    h1{font-size:32px;}
+    .card{padding:24px;}
+    .hexblock{gap:24px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="eyebrow">觀梅 · 心易天機</div>
+    <h1>梅花易數</h1>
+    <p>「萬物皆有數，心動即天機。」<br>誠心一念，依當下時刻起卦，體用生克，自見端倪。</p>
+  </header>
+
+  <div class="card">
+    <label class="field-label">誠心發問</label>
+    <textarea id="question" placeholder="心中所繫之事，簡述於此……（例如：這件事近期會有轉機嗎？）"></textarea>
+
+    <div class="chips" id="chips">
+      <div class="chip" data-c="財運">財運</div>
+      <div class="chip" data-c="事業">事業</div>
+      <div class="chip" data-c="感情">感情</div>
+      <div class="chip" data-c="健康">健康</div>
+    </div>
+
+    <label class="field-label">起卦時間</label>
+    <div class="time-toggle" id="timeToggle">
+      <div class="ttoggle active" data-t="now">當下起卦</div>
+      <div class="ttoggle" data-t="custom">擇時起卦</div>
+    </div>
+    <input type="datetime-local" id="customTime" class="time-input" min="1900-02-01" max="2100-12-31">
+
+    <button class="cast-btn" id="castBtn">起　　卦</button>
+    <div class="cast-hint" id="castHint">以起卦當下之年月日時起數，一事一占，心誠則靈</div>
+  </div>
+
+  <div id="result">
+    <div class="paper-card">
+      <div class="seal" id="seal">誠意<br>正心</div>
+      <div class="gua-title">本卦 · <span id="benguaName"></span></div>
+      <div class="lunar-line" id="lunarDate"></div>
+      <div class="hexblock">
+        <div class="lines-col" id="lines"></div>
+        <div class="gua-meta">
+          <div class="row"><span class="k">上卦（外）</span><span class="v" id="upperName"></span></div>
+          <div class="row"><span class="k">下卦（內）</span><span class="v" id="lowerName"></span></div>
+          <div class="row"><span class="k">動爻</span><span class="v" id="movingLine"></span></div>
+          <div class="row"><span class="k">體卦</span><span class="v tag-ti" id="tiGua"></span></div>
+          <div class="row"><span class="k">用卦</span><span class="v tag-yong" id="yongGua"></span></div>
+        </div>
+      </div>
+
+      <div class="verdict-box" id="verdictBox">
+        <div class="vb-head">
+          <span class="vb-title">綜合斷卦</span>
+          <span class="vb-badge" id="vbBadge"></span>
+        </div>
+        <div class="vb-row"><span class="vb-k">事情走向</span><p id="vbTrend"></p></div>
+        <div class="vb-row"><span class="vb-k">關鍵信號與時間</span><p id="vbSignal"></p></div>
+        <div class="vb-row"><span class="vb-k">行動建議</span><p id="vbAction"></p></div>
+      </div>
+
+      <div class="verdict">
+        <div class="lv" id="verdictLevel"></div>
+        <div class="rel"><span class="rel-label">判斷依據</span><span id="verdictRel"></span></div>
+      </div>
+
+      <div class="interp" id="interpText"></div>
+
+      <div class="change-note" id="changeNote"></div>
+
+      <div class="calc-toggle" id="calcToggle">
+        <span class="arrow">▾</span>
+        <span>顯示詳細推算過程</span>
+      </div>
+      <div class="calc-panel" id="calcPanel"></div>
+    </div>
+    <div class="disclaimer">此卦依傳統梅花易數體用生克規則生成，農曆年月日採標準陰曆演算法精確換算，上下卦名對照文王六十四卦序。內容僅供參考與自我覺察，非宿命定論。</div>
+  </div>
+
+</div>
+
+<script>
+const TRIGRAMS = [
+  {name:'乾', symbol:'☰', nature:'天', el:'金', trait:'剛健自強，居上位而動'},
+  {name:'兌', symbol:'☱', nature:'澤', el:'金', trait:'和悅取悅，柔外剛內'},
+  {name:'離', symbol:'☲', nature:'火', el:'火', trait:'光明外顯，附麗而生'},
+  {name:'震', symbol:'☳', nature:'雷', el:'木', trait:'奮起躁動，一鳴驚人'},
+  {name:'巽', symbol:'☴', nature:'風', el:'木', trait:'謙遜滲入，順勢而為'},
+  {name:'坎', symbol:'☵', nature:'水', el:'水', trait:'險中求進，外柔內剛'},
+  {name:'艮', symbol:'☶', nature:'山', el:'土', trait:'止而不躁，穩守待時'},
+  {name:'坤', symbol:'☷', nature:'地', el:'土', trait:'柔順包容，厚德載物'}
+]; // index0=乾...index7=坤，對應先天八卦數1-8
+const LINES = [
+  [1,1,1],[1,1,0],[1,0,1],[1,0,0],[0,1,1],[0,1,0],[0,0,1],[0,0,0]
+];
+const GEN = {'木':'火','火':'土','土':'金','金':'水','水':'木'};
+const OVER = {'木':'土','土':'水','水':'火','火':'金','金':'木'};
+
+// ---- 64卦名對照表（上卦→下卦），順序：乾兌離震巽坎艮坤 ----
+const GUA_NAMES = [
+  ['乾為天','天澤履','天火同人','天雷无妄','天風姤','天水訟','天山遯','天地否'],
+  ['澤天夬','兌為澤','澤火革','澤雷隨','澤風大過','澤水困','澤山咸','澤地萃'],
+  ['火天大有','火澤睽','離為火','火雷噬嗑','火風鼎','火水未濟','火山旅','火地晉'],
+  ['雷天大壯','雷澤歸妹','雷火豐','震為雷','雷風恆','雷水解','雷山小過','雷地豫'],
+  ['風天小畜','風澤中孚','風火家人','風雷益','巽為風','風水渙','風山漸','風地觀'],
+  ['水天需','水澤節','水火既濟','水雷屯','水風井','坎為水','水山蹇','水地比'],
+  ['山天大畜','山澤損','山火賁','山雷頤','山風蠱','山水蒙','艮為山','山地剝'],
+  ['地天泰','地澤臨','地火明夷','地雷復','地風升','地水師','地山謙','坤為地']
+];
+function guaName(upperIdx, lowerIdx){ return GUA_NAMES[upperIdx-1][lowerIdx-1]; }
+
+// ---- 農曆換算（1900-2100 標準陰曆資料表，與通行農曆演算法比對一致） ----
+const LUNAR_INFO = [0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
+0x04ae0,0x0a5b6,0x0a4d0,0x0d250,0x1d255,0x0b540,0x0d6a0,0x0ada2,0x095b0,0x14977,
+0x04970,0x0a4b0,0x0b4b5,0x06a50,0x06d40,0x1ab54,0x02b60,0x09570,0x052f2,0x04970,
+0x06566,0x0d4a0,0x0ea50,0x06e95,0x05ad0,0x02b60,0x186e3,0x092e0,0x1c8d7,0x0c950,
+0x0d4a0,0x1d8a6,0x0b550,0x056a0,0x1a5b4,0x025d0,0x092d0,0x0d2b2,0x0a950,0x0b557,
+0x06ca0,0x0b550,0x15355,0x04da0,0x0a5b0,0x14573,0x052b0,0x0a9a8,0x0e950,0x06aa0,
+0x0aea6,0x0ab50,0x04b60,0x0aae4,0x0a570,0x05260,0x0f263,0x0d950,0x05b57,0x056a0,
+0x096d0,0x04dd5,0x04ad0,0x0a4d0,0x0d4d4,0x0d250,0x0d558,0x0b540,0x0b6a0,0x195a6,
+0x095b0,0x049b0,0x0a974,0x0a4b0,0x0b27a,0x06a50,0x06d40,0x0af46,0x0ab60,0x09570,
+0x04af5,0x04970,0x064b0,0x074a3,0x0ea50,0x06b58,0x05ac0,0x0ab60,0x096d5,0x092e0,
+0x0c960,0x0d954,0x0d4a0,0x0da50,0x07552,0x056a0,0x0abb7,0x025d0,0x092d0,0x0cab5,
+0x0a950,0x0b4a0,0x0baa4,0x0ad50,0x055d9,0x04ba0,0x0a5b0,0x15176,0x052b0,0x0a930,
+0x07954,0x06aa0,0x0ad50,0x05b52,0x04b60,0x0a6e6,0x0a4e0,0x0d260,0x0ea65,0x0d530,
+0x05aa0,0x076a3,0x096d0,0x04afb,0x04ad0,0x0a4d0,0x1d0b6,0x0d250,0x0d520,0x0dd45,
+0x0b5a0,0x056d0,0x055b2,0x049b0,0x0a577,0x0a4b0,0x0aa50,0x1b255,0x06d20,0x0ada0,
+0x14b63,0x09370,0x049f8,0x04970,0x064b0,0x168a6,0x0ea50,0x06b20,0x1a6c4,0x0aae0,
+0x092e0,0x0d2e3,0x0c960,0x0d557,0x0d4a0,0x0da50,0x05d55,0x056a0,0x0a6d0,0x055d4,
+0x052d0,0x0a9b8,0x0a950,0x0b4a0,0x0b6a6,0x0ad50,0x055a0,0x0aba4,0x0a5b0,0x052b0,
+0x0b273,0x06930,0x07337,0x06aa0,0x0ad50,0x14b55,0x04b60,0x0a570,0x054e4,0x0d160,
+0x0e968,0x0d520,0x0daa0,0x16aa6,0x056d0,0x04ae0,0x0a9d4,0x0a4d0,0x0d150,0x0f252,
+0x0d520];
+function lLeapMonth(y){ return LUNAR_INFO[y-1900] & 0xf; }
+function lLeapDays(y){ return lLeapMonth(y) ? ((LUNAR_INFO[y-1900]&0x10000)?30:29) : 0; }
+function lMonthDays(y,m){ return (LUNAR_INFO[y-1900] & (0x10000>>m)) ? 30 : 29; }
+function lYearDays(y){
+  let sum=348;
+  for(let i=0x8000;i>0x8;i>>=1){ sum += (LUNAR_INFO[y-1900]&i)?1:0; }
+  return sum + lLeapDays(y);
+}
+function solarToLunar(y,m,d){
+  let offset = Math.floor((Date.UTC(y,m-1,d)-Date.UTC(1900,0,31))/86400000);
+  let i, leap=0, temp=0;
+  for(i=1900;i<2101 && offset>0;i++){ temp=lYearDays(i); offset-=temp; }
+  if(offset<0){ offset+=temp; i--; }
+  const year=i;
+  leap = lLeapMonth(year);
+  let isLeap=false;
+  for(i=1;i<13 && offset>0;i++){
+    if(leap>0 && i===(leap+1) && !isLeap){ --i; isLeap=true; temp=lLeapDays(year); }
+    else { temp=lMonthDays(year,i); }
+    if(isLeap && i===(leap+1)) isLeap=false;
+    offset-=temp;
+  }
+  if(offset===0 && leap>0 && i===leap+1){
+    if(isLeap){ isLeap=false; } else { isLeap=true; --i; }
+  }
+  if(offset<0){ offset+=temp; --i; }
+  return { year:year, month:i, day:offset+1, isLeap:isLeap };
+}
+const STEMS=['甲','乙','丙','丁','戊','己','庚','辛','壬','癸'];
+const BRANCHES=['子','丑','寅','卯','辰','巳','午','未','申','酉','戌','亥'];
+const CN_NUM=['','一','二','三','四','五','六','七','八','九','十','十一','十二'];
+
+// ---- 儒略日數（JDN）與日干支換算，用於推算精確的「逢X日」應期 ----
+function toJDN(Y,M,D){
+  const a = Math.floor((14-M)/12);
+  const y = Y + 4800 - a;
+  const m = M + 12*a - 3;
+  return D + Math.floor((153*m+2)/5) + 365*y + Math.floor(y/4) - Math.floor(y/100) + Math.floor(y/400) - 32045;
+}
+function dayGanZhi(Y,M,D){
+  const jdn = toJDN(Y,M,D);
+  const idx = ((jdn+49)%60+60)%60;
+  return { stem: STEMS[idx%10], branch: BRANCHES[idx%12] };
+}
+function addDays(date, n){
+  const d = new Date(date.getTime());
+  d.setDate(d.getDate()+n);
+  return d;
+}
+function fmtDate(d){
+  return `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日`;
+}
+function fmtWeekday(d){
+  return ['日','一','二','三','四','五','六'][d.getDay()];
+}
+function ganZhiYear(y){
+  const s = (y-4)%10, b=(y-4)%12;
+  return STEMS[(s+10)%10] + BRANCHES[(b+12)%12];
+}
+function cnMonthDay(m,day,isLeap){
+  const dayNames=['初一','初二','初三','初四','初五','初六','初七','初八','初九','初十',
+    '十一','十二','十三','十四','十五','十六','十七','十八','十九','二十',
+    '廿一','廿二','廿三','廿四','廿五','廿六','廿七','廿八','廿九','三十'];
+  return (isLeap?'閏':'') + CN_NUM[m] + '月' + dayNames[day-1];
+}
+
+function relation(tiEl, yongEl){
+  if(tiEl===yongEl) return {rel:'體用比和', level:'吉', note:'兩者同氣相求，事態平順融洽'};
+  if(GEN[yongEl]===tiEl) return {rel:'用生體', level:'大吉', note:'外緣助我，事半功倍，有貴人相扶'};
+  if(GEN[tiEl]===yongEl) return {rel:'體生用', level:'小凶', note:'我為外境付出心力，收獲未必對等'};
+  if(OVER[tiEl]===yongEl) return {rel:'體克用', level:'吉', note:'我能主導局面，事情大致如己所願'};
+  if(OVER[yongEl]===tiEl) return {rel:'用克體', level:'凶', note:'外境壓力較大，宜謹慎守成、緩圖進取'};
+}
+
+// ---- 綜合斷卦：三分吉凶、走向、爻位關鍵信號、行動建議 ----
+// 吉凶分級直接沿用 relation() 回傳的 level（大吉/吉→吉，小凶→中，凶→凶），
+// 與上方「判斷依據」區塊保持一致，避免同一卦出現兩種互相矛盾的吉凶標示。
+const LEVEL3 = {
+  '大吉':{label:'吉', cls:'lv-good'},
+  '吉':{label:'吉', cls:'lv-good'},
+  '小凶':{label:'中', cls:'lv-mid'},
+  '凶':{label:'凶', cls:'lv-bad'}
+};
+
+const TREND_BY_RELATION = {
+  '用生體':'外部條件對你有利，資源、機會或貴人容易主動靠近，整體走向偏向順遂、逐步上揚。',
+  '體克用':'你握有主導權，只要按部就班推進，事情大致會照你的規劃走，過程中阻力不大。',
+  '體用比和':'情勢平穩，沒有太大的起伏，走向好壞主要取決於你能否持續投入、不中途鬆懈。',
+  '體生用':'你付出的心力可能大於實際回報，走向偏向消耗，需留意投入與收穫是否失衡。',
+  '用克體':'外部壓力大於自身掌控力，情勢容易受制於人或環境，走向偏向阻滯、延宕。'
+};
+
+const SIGNAL_BY_LINE = {
+  1:'事情才剛萌芽，根基尚未穩固，此時的變化多來自自身準備或內部條件是否充分，留意起步階段的小狀況。',
+  2:'情勢正在悄悄醞釀，變化多發生在身邊近處，一些看似不起眼的小細節，往往是後續發展的伏筆。',
+  3:'正處於轉折的節骨眼，內外交接、多空拉扯，容易出現反覆、猶豫或立場不一的狀況，是整卦最需留意之處。',
+  4:'外部因素——他人、環境、大局——的影響力正在加重，留意來自外界的訊息或第三方的態度轉變。',
+  5:'已走到關鍵決策點，也是全卦最有主導力的位置，此時做出的判斷往往一錘定音，宜謹慎但不宜猶豫。',
+  6:'事情發展已至極限，物極必反，留意由盛轉衰、或告一段落的跡象，過度堅持反而可能適得其反。'
+};
+
+const TIMEFRAME_BY_LINE = {
+  1:'時間點偏近，通常數天之內就會先看到苗頭',
+  2:'大約一週上下的時間，會看出雛形',
+  3:'短則數日、長則一兩週會有明顯轉變，是整卦節奏最快的階段',
+  4:'大約半個月到一個月之間是關鍵期',
+  5:'大約一個月上下，會出現關鍵人物或決定性的消息',
+  6:'變化可能來得快，也可能拖到極限後才反轉，留意月底或季末前後'
+};
+
+const BRANCH_TARGETS = {
+  '木':['寅','卯'], '火':['巳','午'], '土':['辰','戌','丑','未'], '金':['申','酉'], '水':['亥','子']
+};
+function nearestElementDay(baseDate, element){
+  const targets = BRANCH_TARGETS[element];
+  for(let i=1;i<=12;i++){
+    const d = addDays(baseDate, i);
+    const gz = dayGanZhi(d.getFullYear(), d.getMonth()+1, d.getDate());
+    if(targets.includes(gz.branch)){
+      return { date:d, stem:gz.stem, branch:gz.branch, offset:i };
+    }
+  }
+  return null;
+}
+
+const ACTION_BASE = {
+  '吉':'可以放心往前走，該出手時就出手，此時多一分主動，就多一分收穫。',
+  '中':'維持原本的步調就好，不必躁進、也不必自亂陣腳，先把眼前能確認的事情做穩，再視變化調整。',
+  '凶':'先別急著做重大決定，收斂一點、降低風險，把關鍵決定往後延，等訊號明朗一些再行動比較穩妥。'
+};
+
+const ACTION_CATEGORY = {
+  '財運':{'吉':'資金運用上可以稍微積極布局，但仍建議設好停損。','中':'錢財進出建議量入為出，暫時不宜大進大出。','凶':'近期避免大額投資、借貸或作保，先顧好手邊的現金流。'},
+  '事業':{'吉':'可以主動爭取、提出想法，此刻的努力較容易被看見。','中':'把手上的工作做扎實，暫緩重大異動如轉職或創業。','凶':'避免這時候立刻攤牌或做出決裂性的決定，先觀察上意或局勢再說。'},
+  '感情':{'吉':'可以主動表達心意或往前一步，對方多半願意回應。','中':'順其自然就好，不用刻意經營，也別過度猜測對方心思。','凶':'先避免爭執或逼問，給彼此一點空間，衝突當下不是講清楚的好時機。'},
+  '健康':{'吉':'身心狀態不錯，適合安排規律的調養或運動計畫。','中':'留意作息是否規律，小毛病別拖，及早處理。','凶':'不宜過度硬撐或勉強透支體力，該休息、該就醫就別拖延。'}
+};
+const ACTION_CATEGORY_DEFAULT = {
+  '吉':'把握這段時間主動一點，機會往往稍縱即逝。',
+  '中':'不用給自己太大壓力，穩穩地把眼前的事情做完最重要。',
+  '凶':'先求自保、緩一緩腳步，別在情勢不明時貿然行動。'
+};
+
+function buildVerdict(relKey, relLevel, moveLine, category, q, yongName, yongEl, yongIdx, baseDate){
+  const lv = LEVEL3[relLevel];
+  const trend = TREND_BY_RELATION[relKey];
+
+  // 數字應期：用卦先天數 + 動爻數，往後推算對應天數的具體日期
+  const N = yongIdx + moveLine;
+  const numDate = addDays(baseDate, N);
+  const numText = `以「用卦數＋動爻數」（${yongIdx}＋${moveLine}＝${N}）往後推算，約在 <b>${fmtDate(numDate)}（週${fmtWeekday(numDate)}）</b>前後，是這件事初步見分曉的時間點。`;
+
+  // 干支應期：用卦五行所對應的地支日，最近一次出現的具體日期
+  const ed = nearestElementDay(baseDate, yongEl);
+  const gzText = ed ? `另依用卦五行「${yongName}屬${yongEl}」推算，最近一個相應的干支日是 <b>${fmtDate(ed.date)}（${ed.stem}${ed.branch}日）</b>，這天前後容易出現關鍵的人事物或轉折訊息。` : '';
+
+  const signal = `${SIGNAL_BY_LINE[moveLine]}${TIMEFRAME_BY_LINE[moveLine]}。${numText}${gzText}`;
+  const catAction = (ACTION_CATEGORY[category] && ACTION_CATEGORY[category][lv.label]) || ACTION_CATEGORY_DEFAULT[lv.label];
+  const action = `${ACTION_BASE[lv.label]}${catAction}`;
+  const trendPrefix = q ? `針對「${q}」這件事：` : '';
+  return { label: lv.label, cls: lv.cls, trend: trendPrefix + trend, signal, action };
+}
+
+const CATEGORY_NOTE = {
+  '財運':'財運上，此卦提示金錢往來需量力而行，',
+  '事業':'事業上，此卦提示進退時機為關鍵，',
+  '感情':'感情上，此卦提示彼此心意的流動最值得留意，',
+  '健康':'健康上，此卦提示作息與心境的調和不可輕忽，',
+  '': '此事的發展，'
+};
+
+let activeCat = '';
+document.querySelectorAll('.chip').forEach(c=>{
+  c.addEventListener('click', ()=>{
+    const isActive = c.classList.contains('active');
+    document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+    if(!isActive){ c.classList.add('active'); activeCat = c.dataset.c; }
+    else { activeCat = ''; }
+  });
+});
+
+let timeMode = 'now';
+const customTimeInput = document.getElementById('customTime');
+const castHint = document.getElementById('castHint');
+function pad(n){ return String(n).padStart(2,'0'); }
+function nowLocalValue(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+document.querySelectorAll('.ttoggle').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.ttoggle').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    timeMode = t.dataset.t;
+    if(timeMode === 'custom'){
+      customTimeInput.classList.add('show');
+      if(!customTimeInput.value) customTimeInput.value = nowLocalValue();
+      castHint.textContent = '以所選時間之年月日時起數，一事一占，心誠則靈';
+    } else {
+      customTimeInput.classList.remove('show');
+      castHint.textContent = '以起卦當下之年月日時起數，一事一占，心誠則靈';
+    }
+  });
+});
+
+function hourToShichen(h){
+  // 23-1子1, 1-3丑2 ... 每兩小時一時辰，共12
+  const idx = Math.floor(((h+1)%24)/2);
+  return idx+1;
+}
+
+function cast(){
+  let now;
+  if(timeMode === 'custom' && customTimeInput.value){
+    now = new Date(customTimeInput.value);
+    if(isNaN(now.getTime())) now = new Date();
+  } else {
+    now = new Date();
+  }
+  const solarY = now.getFullYear();
+  const solarM = now.getMonth()+1;
+  const solarD = now.getDate();
+  const hourNum = hourToShichen(now.getHours());
+
+  const lunar = solarToLunar(solarY, solarM, solarD);
+  const year = lunar.year, month = lunar.month, day = lunar.day;
+
+  let yearBranch = (year-3) % 12;
+  if(yearBranch<=0) yearBranch += 12;
+
+  let upperSum = yearBranch+month+day;
+  let upperIdx = upperSum % 8; if(upperIdx===0) upperIdx=8;
+  let lowerSum = yearBranch+month+day+hourNum;
+  let lowerIdx = lowerSum % 8; if(lowerIdx===0) lowerIdx=8;
+  let moveSum = yearBranch+month+day+hourNum;
+  let moveLine = moveSum % 6; if(moveLine===0) moveLine=6;
+
+  const upper = TRIGRAMS[upperIdx-1];
+  const lower = TRIGRAMS[lowerIdx-1];
+  const lowerLines = LINES[lowerIdx-1];
+  const upperLines = LINES[upperIdx-1];
+  const full = lowerLines.concat(upperLines); // index0=bottom(第1爻) ... index5=top(第6爻)
+
+  const isTi_lower = moveLine > 3; // 動爻在上卦則上卦為用，下卦為體；反之亦然
+  const ti = isTi_lower ? lower : upper;
+  const yong = isTi_lower ? upper : lower;
+
+  const rel = relation(ti.el, yong.el);
+
+  // 變卦
+  const changedFull = full.slice();
+  changedFull[moveLine-1] = full[moveLine-1]===1?0:1;
+  const changedLower = changedFull.slice(0,3);
+  const changedUpper = changedFull.slice(3,6);
+  function findTrigramIdx(arr){
+    for(let i=0;i<LINES.length;i++){ if(LINES[i].every((v,idx)=>v===arr[idx])) return i+1; }
+  }
+  const cUpperIdx = findTrigramIdx(changedUpper);
+  const cLowerIdx = findTrigramIdx(changedLower);
+  const cUpper = TRIGRAMS[cUpperIdx-1];
+  const cLower = TRIGRAMS[cLowerIdx-1];
+
+  // render
+  document.getElementById('result').style.display = 'block';
+  document.getElementById('benguaName').textContent = `${guaName(upperIdx,lowerIdx)}（${upper.name}上${lower.name}下）`;
+  document.getElementById('lunarDate').textContent = `${ganZhiYear(year)}年 ${cnMonthDay(month,day,lunar.isLeap)} · ${BRANCHES[hourNum-1]}時`;
+  document.getElementById('upperName').textContent = `${upper.name} ${upper.symbol}（${upper.nature}）`;
+  document.getElementById('lowerName').textContent = `${lower.name} ${lower.symbol}（${lower.nature}）`;
+  document.getElementById('movingLine').textContent = `第 ${moveLine} 爻`;
+  document.getElementById('tiGua').textContent = `${ti.name}（${ti.el}）`;
+  document.getElementById('yongGua').textContent = `${yong.name}（${yong.el}）`;
+  document.getElementById('verdictLevel').textContent = rel.level;
+  document.getElementById('verdictRel').textContent = rel.rel + ' — ' + rel.note;
+
+  const q = document.getElementById('question').value.trim();
+
+  const yongIdx = isTi_lower ? upperIdx : lowerIdx;
+  const vb = buildVerdict(rel.rel, rel.level, moveLine, activeCat, q, yong.name, yong.el, yongIdx, now);
+  const vbBadge = document.getElementById('vbBadge');
+  vbBadge.textContent = vb.label;
+  vbBadge.className = 'vb-badge ' + vb.cls;
+  document.getElementById('vbTrend').textContent = vb.trend;
+  document.getElementById('vbSignal').innerHTML = vb.signal;
+  document.getElementById('vbAction').textContent = vb.action;
+
+  const catNote = CATEGORY_NOTE[activeCat] || CATEGORY_NOTE[''];
+  const interp = `${q?`所問「${q}」，`:''}本卦為<b>${guaName(upperIdx,lowerIdx)}</b>（${upper.name}上${lower.name}下），體為<b>${ti.name}</b>（${ti.trait}），用為<b>${yong.name}</b>（${yong.trait}）。<b>${rel.rel}</b>，${rel.note}。${catNote}宜順此卦象之勢，${rel.level.includes('吉')?'把握當下時機，穩健推進即可。':'先求自保、緩而後動，靜待用卦之勢轉緩。'}`;
+  document.getElementById('interpText').innerHTML = interp;
+
+  document.getElementById('changeNote').innerHTML =
+    `第 ${moveLine} 爻動，變為 <b>${guaName(cUpperIdx,cLowerIdx)}</b>（${cUpper.name}上${cLower.name}下）——此為事態後續演變之勢，若初象未如意，亦可留意此變化方向。`;
+
+  // 詳細推算過程
+  const upperRaw = upperSum % 8;
+  const lowerRaw = lowerSum % 8;
+  const moveRaw = moveSum % 6;
+  const calcHtml = `
+    <div class="calc-step">
+      <div class="calc-label">① 換算農曆${timeMode==='custom' ? '（自訂時間）' : '（當下時間）'}</div>
+      <div class="calc-eq">國曆 ${solarY} 年 ${solarM} 月 ${solarD} 日 ${pad(now.getHours())}:${pad(now.getMinutes())}　→　農曆 <b>${ganZhiYear(year)}年</b> ${cnMonthDay(month,day,lunar.isLeap)}（${BRANCHES[hourNum-1]}時）</div>
+    </div>
+    <div class="calc-step">
+      <div class="calc-label">② 年支數</div>
+      <div class="calc-eq">(農曆年 − 3) mod 12 = (${year} − 3) mod 12 = ${(year-3)%12===0?'0 → 12':(year-3)%12}　→　年支數 <b>${yearBranch}</b></div>
+    </div>
+    <div class="calc-step">
+      <div class="calc-label">③ 上卦（外卦）</div>
+      <div class="calc-eq">(年支數 + 月 + 日) mod 8 = (${yearBranch} + ${month} + ${day}) mod 8 = ${upperSum} mod 8 = ${upperRaw===0?'0 → 8':upperRaw}</div>
+      <div class="calc-eq">先天卦數 ${upperIdx}　→　上卦為 <b>${upper.name} ${upper.symbol}</b></div>
+    </div>
+    <div class="calc-step">
+      <div class="calc-label">④ 下卦（內卦）</div>
+      <div class="calc-eq">(年支數 + 月 + 日 + 時支數) mod 8 = (${yearBranch} + ${month} + ${day} + ${hourNum}) mod 8 = ${lowerSum} mod 8 = ${lowerRaw===0?'0 → 8':lowerRaw}</div>
+      <div class="calc-eq">先天卦數 ${lowerIdx}　→　下卦為 <b>${lower.name} ${lower.symbol}</b></div>
+    </div>
+    <div class="calc-step">
+      <div class="calc-label">⑤ 動爻</div>
+      <div class="calc-eq">(年支數 + 月 + 日 + 時支數) mod 6 = ${moveSum} mod 6 = ${moveRaw===0?'0 → 6':moveRaw}　→　<b>第 ${moveLine} 爻</b>變</div>
+    </div>
+    <div class="calc-step">
+      <div class="calc-label">⑥ 組成本卦</div>
+      <div class="calc-eq">${upper.name}（上）+ ${lower.name}（下）　→　<b>${guaName(upperIdx,lowerIdx)}</b></div>
+    </div>
+    <div class="calc-note">先天八卦數：乾1・兌2・離3・震4・巽5・坎6・艮7・坤8（相除餘0時取該數，即8或6）。上卦決定於「年支＋月＋日」，下卦再加「時支數」；動爻另以除6取餘定位。</div>
+  `;
+  document.getElementById('calcPanel').innerHTML = calcHtml;
+
+  // lines animation
+  const linesCol = document.getElementById('lines');
+  linesCol.innerHTML='';
+  full.forEach((v,i)=>{
+    const yao = document.createElement('div');
+    yao.className = 'yao' + ((i+1)===moveLine?' moving':'');
+    if(v===1){
+      yao.innerHTML = `<div class="bar" style="left:0;width:0"></div>`;
+    } else {
+      yao.innerHTML = `<div class="bar left" style="width:0"></div><div class="bar right" style="width:0"></div>`;
+    }
+    if((i+1)===moveLine){
+      const mark = document.createElement('span');
+      mark.className='mark'; mark.textContent='○';
+      yao.appendChild(mark);
+    }
+    linesCol.appendChild(yao);
+  });
+
+  // trigger draw animation staggered bottom to top
+  requestAnimationFrame(()=>{
+    const yaos = linesCol.querySelectorAll('.yao');
+    yaos.forEach((yao,i)=>{
+      setTimeout(()=>{
+        const bars = yao.querySelectorAll('.bar');
+        bars.forEach(b=>{ b.style.width = bars.length===1 ? '150px' : '66px'; });
+      }, i*140);
+    });
+  });
+
+  document.getElementById('seal').classList.remove('show');
+  void document.getElementById('seal').offsetWidth;
+  document.getElementById('seal').classList.add('show');
+
+  document.getElementById('result').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+document.getElementById('castBtn').addEventListener('click', cast);
+
+const calcToggle = document.getElementById('calcToggle');
+calcToggle.addEventListener('click', ()=>{
+  const panel = document.getElementById('calcPanel');
+  const isOpen = panel.style.display === 'block';
+  panel.style.display = isOpen ? 'none' : 'block';
+  calcToggle.classList.toggle('open', !isOpen);
+  calcToggle.querySelector('span:last-child').textContent = isOpen ? '顯示詳細推算過程' : '收合詳細推算過程';
+});
+</script>
+</body>
+</html>
