@@ -43,6 +43,46 @@
   }
   header p{font-size:14px;color:var(--mist);letter-spacing:0.02em;line-height:1.8;}
 
+  .nav-tabs{display:flex;gap:6px;margin-bottom:24px;border-bottom:1px solid #2a2f3a;}
+  .nav-tab{
+    padding:11px 22px;font-size:14px;color:var(--mist);cursor:pointer;user-select:none;
+    letter-spacing:0.1em;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;
+  }
+  .nav-tab:hover{color:var(--gold);}
+  .nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+  .history-toolbar{display:flex;justify-content:space-between;align-items:center;margin-top:2px;}
+  .history-count{font-size:12px;color:#565b66;letter-spacing:0.05em;}
+  .history-clear{font-size:12px;color:var(--cinnabar);cursor:pointer;letter-spacing:0.05em;user-select:none;}
+  .history-clear:hover{text-decoration:underline;}
+
+  .hist-empty{text-align:center;color:#565b66;font-size:13px;padding:40px 20px;letter-spacing:0.05em;}
+
+  .hist-card{
+    position:relative;background:var(--paper);border-radius:4px;padding:20px 24px;
+    margin-bottom:14px;color:var(--ink);box-shadow:0 10px 24px -14px rgba(0,0,0,0.5), inset 0 0 0 1px var(--paper-shadow);
+  }
+  .hist-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;}
+  .hist-when{font-size:11.5px;color:#6b6250;letter-spacing:0.05em;}
+  .hist-badges{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+  .hist-tag{font-size:11px;padding:2px 9px;border-radius:999px;background:rgba(76,107,84,0.12);color:var(--jade);letter-spacing:0.05em;}
+  .hist-lv{
+    font-family:'Noto Serif TC',serif;font-weight:700;font-size:12px;padding:2px 11px;border-radius:999px;color:#f2ead6;
+  }
+  .hist-lv.lv-good{background:var(--jade);}
+  .hist-lv.lv-mid{background:var(--gold);color:#2a251e;}
+  .hist-lv.lv-bad{background:var(--cinnabar);}
+  .hist-del{color:#b0a688;cursor:pointer;font-size:15px;line-height:1;padding:2px 4px;flex-shrink:0;}
+  .hist-del:hover{color:var(--cinnabar);}
+  .hist-q{font-size:14px;color:#3a3428;margin-bottom:10px;line-height:1.6;}
+  .hist-q.empty{color:#9a917a;font-style:italic;}
+  .hist-gua{
+    font-family:'Noto Serif TC',serif;font-size:16px;font-weight:700;color:var(--ink);margin-bottom:6px;
+  }
+  .hist-gua .arrow{color:#9a917a;font-weight:400;margin:0 6px;font-family:sans-serif;}
+  .hist-detail{font-size:12.5px;color:#6b6250;line-height:2;}
+  .hist-detail b{color:var(--cinnabar);}
+
   .card{
     background:linear-gradient(180deg,#181c24,#14171e);
     border:1px solid #2a2f3a;
@@ -234,6 +274,13 @@
     <p>「萬物皆有數，心動即天機。」<br>誠心一念，依當下時刻起卦，體用生克，自見端倪。</p>
   </header>
 
+  <div class="nav-tabs">
+    <div class="nav-tab active" data-tab="cast">起卦</div>
+    <div class="nav-tab" data-tab="history">占卜紀錄</div>
+  </div>
+
+  <div id="castView">
+
   <div class="card">
     <label class="field-label">誠心發問</label>
     <textarea id="question" placeholder="心中所繫之事，簡述於此……（例如：這件事近期會有轉機嗎？）"></textarea>
@@ -300,9 +347,24 @@
     <div class="disclaimer">此卦依傳統梅花易數體用生克規則生成，農曆年月日採標準陰曆演算法精確換算，上下卦名對照文王六十四卦序。內容僅供參考與自我覺察，非宿命定論。</div>
   </div>
 
+  </div>
+
+  <div id="historyView" style="display:none">
+    <div class="card">
+      <label class="field-label">搜尋紀錄</label>
+      <input type="text" id="historySearch" class="time-input show" placeholder="搜尋問題內容、卦名或分類……" style="margin-bottom:16px;">
+      <div class="history-toolbar">
+        <span class="history-count" id="historyCount"></span>
+        <span class="history-clear" id="historyClear">清空所有紀錄</span>
+      </div>
+    </div>
+    <div id="historyList"></div>
+  </div>
+
 </div>
 
 <script>
+
 const TRIGRAMS = [
   {name:'乾', symbol:'☰', nature:'天', el:'金', trait:'剛健自強，居上位而動'},
   {name:'兌', symbol:'☱', nature:'澤', el:'金', trait:'和悅取悅，柔外剛內'},
@@ -439,11 +501,11 @@ const LEVEL3 = {
 };
 
 const TREND_BY_RELATION = {
-  '用生體':'外部條件對你有利，資源、機會或貴人容易主動靠近，整體走向偏向順遂、逐步上揚。',
-  '體克用':'你握有主導權，只要按部就班推進，事情大致會照你的規劃走，過程中阻力不大。',
-  '體用比和':'情勢平穩，沒有太大的起伏，走向好壞主要取決於你能否持續投入、不中途鬆懈。',
-  '體生用':'你付出的心力可能大於實際回報，走向偏向消耗，需留意投入與收穫是否失衡。',
-  '用克體':'外部壓力大於自身掌控力，情勢容易受制於人或環境，走向偏向阻滯、延宕。'
+  '用生體':'從卦象結構看，外部條件相對有利，資源、機會或協助較容易出現，整體走向的結構性阻力偏小。',
+  '體克用':'從卦象結構看，主導權相對在你這邊，只要維持既定步調推進，過程中的結構性阻力不大。',
+  '體用比和':'從卦象結構看，雙方力量相當，短期內不會有明顯起伏，走向好壞主要取決於後續是否持續投入。',
+  '體生用':'從卦象結構看，投入與回報之間可能不對等，付出的心力容易大於實際成果，走向偏向消耗。',
+  '用克體':'從卦象結構看，外部制約大於自身掌控力，情勢容易受制於人或環境，走向偏向阻滯、延宕。'
 };
 
 const SIGNAL_BY_LINE = {
@@ -480,21 +542,21 @@ function nearestElementDay(baseDate, element){
 }
 
 const ACTION_BASE = {
-  '吉':'可以放心往前走，該出手時就出手，此時多一分主動，就多一分收穫。',
-  '中':'維持原本的步調就好，不必躁進、也不必自亂陣腳，先把眼前能確認的事情做穩，再視變化調整。',
-  '凶':'先別急著做重大決定，收斂一點、降低風險，把關鍵決定往後延，等訊號明朗一些再行動比較穩妥。'
+  '吉':'卦象結構偏向有利，代表外部阻力相對較小，但這是結構上的傾向、不是保證，仍須實際投入行動才會落實。',
+  '中':'體用力量相當，短期內既不容易大幅突破、也不至於明顯惡化，維持原步調、持續觀察是相對合理的做法。',
+  '凶':'卦象結構顯示外部制約較大，此時貿然推進的成功機率偏低，收斂風險、延後重大決定會是較穩妥的選擇。'
 };
 
 const ACTION_CATEGORY = {
-  '財運':{'吉':'資金運用上可以稍微積極布局，但仍建議設好停損。','中':'錢財進出建議量入為出，暫時不宜大進大出。','凶':'近期避免大額投資、借貸或作保，先顧好手邊的現金流。'},
-  '事業':{'吉':'可以主動爭取、提出想法，此刻的努力較容易被看見。','中':'把手上的工作做扎實，暫緩重大異動如轉職或創業。','凶':'避免這時候立刻攤牌或做出決裂性的決定，先觀察上意或局勢再說。'},
-  '感情':{'吉':'可以主動表達心意或往前一步，對方多半願意回應。','中':'順其自然就好，不用刻意經營，也別過度猜測對方心思。','凶':'先避免爭執或逼問，給彼此一點空間，衝突當下不是講清楚的好時機。'},
-  '健康':{'吉':'身心狀態不錯，適合安排規律的調養或運動計畫。','中':'留意作息是否規律，小毛病別拖，及早處理。','凶':'不宜過度硬撐或勉強透支體力，該休息、該就醫就別拖延。'}
+  '財運':{'吉':'資金運用上可以考慮布局，但仍建議設好停損點，不因卦象樂觀而放寬風險控管。','中':'錢財進出建議量入為出，暫不宜大進大出。','凶':'近期不建議大額投資、借貸或作保，先確保手邊現金流穩定。'},
+  '事業':{'吉':'可以主動提出想法或爭取機會，但成果仍取決於實際表現，非卦象單方面決定。','中':'把手上的工作做扎實，重大異動如轉職、創業可以再觀察。','凶':'避免這個時間點做出攤牌或決裂性的決定，先觀察局勢再判斷。'},
+  '感情':{'吉':'可以嘗試主動表達，但對方的回應取決於實際互動，卦象只反映條件上的有利與否。','中':'順其自然即可，不需要刻意經營，也不必過度解讀對方的反應。','凶':'避免在此時爭執或逼問，衝突當下通常不是釐清問題的好時機。'},
+  '健康':{'吉':'身心狀態相對穩定，適合安排規律的調養或運動，但仍需持續留意身體實際狀況。','中':'留意作息是否規律，小毛病不要拖，及早處理。','凶':'不宜勉強透支體力，該休息、該就醫都不要拖延。'}
 };
 const ACTION_CATEGORY_DEFAULT = {
-  '吉':'把握這段時間主動一點，機會往往稍縱即逝。',
-  '中':'不用給自己太大壓力，穩穩地把眼前的事情做完最重要。',
-  '凶':'先求自保、緩一緩腳步，別在情勢不明時貿然行動。'
+  '吉':'結構上偏有利，但仍需搭配實際作為，機會不會自動兌現。',
+  '中':'不需要給自己太大壓力，先把眼前能確認的事情做穩再說。',
+  '凶':'先降低風險、緩一緩腳步，避免在情勢不明時貿然行動。'
 };
 
 function buildVerdict(relKey, relLevel, moveLine, category, q, yongName, yongEl, yongIdx, baseDate){
@@ -514,7 +576,7 @@ function buildVerdict(relKey, relLevel, moveLine, category, q, yongName, yongEl,
   const catAction = (ACTION_CATEGORY[category] && ACTION_CATEGORY[category][lv.label]) || ACTION_CATEGORY_DEFAULT[lv.label];
   const action = `${ACTION_BASE[lv.label]}${catAction}`;
   const trendPrefix = q ? `針對「${q}」這件事：` : '';
-  return { label: lv.label, cls: lv.cls, trend: trendPrefix + trend, signal, action };
+  return { label: lv.label, cls: lv.cls, trend: trendPrefix + trend, signal, action, N, numDate, ed };
 }
 
 const CATEGORY_NOTE = {
@@ -639,9 +701,12 @@ function cast(){
   document.getElementById('vbSignal').innerHTML = vb.signal;
   document.getElementById('vbAction').textContent = vb.action;
 
-  const catNote = CATEGORY_NOTE[activeCat] || CATEGORY_NOTE[''];
-  const interp = `${q?`所問「${q}」，`:''}本卦為<b>${guaName(upperIdx,lowerIdx)}</b>（${upper.name}上${lower.name}下），體為<b>${ti.name}</b>（${ti.trait}），用為<b>${yong.name}</b>（${yong.trait}）。<b>${rel.rel}</b>，${rel.note}。${catNote}宜順此卦象之勢，${rel.level.includes('吉')?'把握當下時機，穩健推進即可。':'先求自保、緩而後動，靜待用卦之勢轉緩。'}`;
-  document.getElementById('interpText').innerHTML = interp;
+  // 卦理說明：純就卦象結構作客觀解釋，不因應提問內容而調整判斷
+  const guaLi = `本卦為<b>${guaName(upperIdx,lowerIdx)}</b>（${upper.name}上${lower.name}下）。體卦為<b>${ti.name}</b>（${ti.el}，${ti.trait}），代表當事人／自身的立場；用卦為<b>${yong.name}</b>（${yong.el}，${yong.trait}），代表外部條件、對方或環境變數。兩者關係為<b>${rel.rel}</b>：${rel.note}。此一判斷純粹來自五行生克的結構關係，與所問問題的內容、措辭或期望的答案無關——同樣的卦象結構，不論拿來問任何事情，體用生克的結論都會一致。`;
+  const guaLiApplied = q
+    ? `<br><br>若將此結構對應到你所問的「${q}」：${CATEGORY_NOTE[activeCat] || CATEGORY_NOTE['']}上述體用關係可作為<b>參考依據</b>，但它只反映卦象結構上的傾向，不是對結果的保證——實際結果仍取決於事情本身的條件與你之後的行動。`
+    : '';
+  document.getElementById('interpText').innerHTML = guaLi + guaLiApplied;
 
   document.getElementById('changeNote').innerHTML =
     `第 ${moveLine} 爻動，變為 <b>${guaName(cUpperIdx,cLowerIdx)}</b>（${cUpper.name}上${cLower.name}下）——此為事態後續演變之勢，若初象未如意，亦可留意此變化方向。`;
@@ -677,7 +742,17 @@ function cast(){
       <div class="calc-label">⑥ 組成本卦</div>
       <div class="calc-eq">${upper.name}（上）+ ${lower.name}（下）　→　<b>${guaName(upperIdx,lowerIdx)}</b></div>
     </div>
-    <div class="calc-note">先天八卦數：乾1・兌2・離3・震4・巽5・坎6・艮7・坤8（相除餘0時取該數，即8或6）。上卦決定於「年支＋月＋日」，下卦再加「時支數」；動爻另以除6取餘定位。</div>
+    <div class="calc-step">
+      <div class="calc-label">⑦ 應期（數字法）</div>
+      <div class="calc-eq">用卦先天數 + 動爻數 = ${yongIdx} + ${moveLine} = <b>${vb.N}</b></div>
+      <div class="calc-eq">以起卦時間 ${fmtDate(now)} 往後推 ${vb.N} 天　→　約在 <b>${fmtDate(vb.numDate)}（週${fmtWeekday(vb.numDate)}）</b></div>
+    </div>
+    <div class="calc-step">
+      <div class="calc-label">⑧ 應期（干支法）</div>
+      <div class="calc-eq">用卦「${yong.name}」屬${yong.el}，對應地支：${BRANCH_TARGETS[yong.el].join('、')}</div>
+      <div class="calc-eq">自起卦時間起，往後逐日檢查地支，第一個符合者為 ${fmtDate(now)} + ${vb.ed?vb.ed.offset:'—'} 天　→　<b>${vb.ed?`${fmtDate(vb.ed.date)}（${vb.ed.stem}${vb.ed.branch}日）`:'—'}</b></div>
+    </div>
+    <div class="calc-note">先天八卦數：乾1・兌2・離3・震4・巽5・坎6・艮7・坤8（相除餘0時取該數，即8或6）。上卦決定於「年支＋月＋日」，下卦再加「時支數」；動爻另以除6取餘定位。應期兩法（數字法／干支法）為梅花易數常見的兩種應期推算方式，僅供參考，傳統上不同流派對單位（日／月／年）的取捨仍有出入。</div>
   `;
   document.getElementById('calcPanel').innerHTML = calcHtml;
 
@@ -715,6 +790,30 @@ function cast(){
   void document.getElementById('seal').offsetWidth;
   document.getElementById('seal').classList.add('show');
 
+  saveHistoryRecord({
+    savedAt: new Date().toISOString(),
+    castTimeMode: timeMode,
+    castLabel: `${solarY}/${solarM}/${pad(solarD)} ${pad(now.getHours())}:${pad(now.getMinutes())}`,
+    lunarLabel: `${ganZhiYear(year)}年 ${cnMonthDay(month,day,lunar.isLeap)}`,
+    question: q,
+    category: activeCat,
+    guaName: guaName(upperIdx,lowerIdx),
+    upperName: upper.name,
+    lowerName: lower.name,
+    changedGuaName: guaName(cUpperIdx,cLowerIdx),
+    tiName: ti.name,
+    tiEl: ti.el,
+    yongName: yong.name,
+    yongEl: yong.el,
+    relation: rel.rel,
+    moveLine: moveLine,
+    verdictLabel: vb.label,
+    verdictCls: vb.cls,
+    numDateISO: vb.numDate.toISOString(),
+    edDateISO: vb.ed ? vb.ed.date.toISOString() : null,
+    edLabel: vb.ed ? `${vb.ed.stem}${vb.ed.branch}日` : null
+  });
+
   document.getElementById('result').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
@@ -728,6 +827,127 @@ calcToggle.addEventListener('click', ()=>{
   calcToggle.classList.toggle('open', !isOpen);
   calcToggle.querySelector('span:last-child').textContent = isOpen ? '顯示詳細推算過程' : '收合詳細推算過程';
 });
+
+// ==================== 占卜紀錄（localStorage） ====================
+const HISTORY_KEY = 'meihua_records_v1';
+let storageAvailable = true;
+try{
+  const t = '__meihua_test__';
+  localStorage.setItem(t,'1'); localStorage.removeItem(t);
+}catch(e){ storageAvailable = false; }
+
+function loadHistory(){
+  if(!storageAvailable) return [];
+  try{
+    const raw = localStorage.getItem(HISTORY_KEY);
+    return raw ? JSON.parse(raw) : [];
+  }catch(e){ return []; }
+}
+function persistHistory(arr){
+  if(!storageAvailable) return;
+  try{
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
+  }catch(e){ console.error('儲存紀錄失敗', e); }
+}
+function saveHistoryRecord(rec){
+  if(!storageAvailable) return;
+  rec.id = Date.now() + '_' + Math.random().toString(36).slice(2,8);
+  const arr = loadHistory();
+  arr.unshift(rec);
+  if(arr.length > 300) arr.length = 300;
+  persistHistory(arr);
+}
+function deleteHistoryRecord(id){
+  const arr = loadHistory().filter(r => r.id !== id);
+  persistHistory(arr);
+  renderHistory(document.getElementById('historySearch').value);
+}
+function fmtSavedAt(iso){
+  const d = new Date(iso);
+  return `${fmtDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())} 記錄`;
+}
+function fmtShortDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+function renderHistory(filterText){
+  const listEl = document.getElementById('historyList');
+  const countEl = document.getElementById('historyCount');
+  const all = loadHistory();
+  const kw = (filterText||'').trim().toLowerCase();
+  const filtered = kw ? all.filter(r =>
+    (r.question||'').toLowerCase().includes(kw) ||
+    (r.guaName||'').toLowerCase().includes(kw) ||
+    (r.category||'').toLowerCase().includes(kw) ||
+    (r.changedGuaName||'').toLowerCase().includes(kw)
+  ) : all;
+
+  countEl.textContent = storageAvailable
+    ? `共 ${all.length} 筆紀錄${kw?`，符合搜尋 ${filtered.length} 筆`:''}`
+    : '此瀏覽器無法使用本機儲存，紀錄僅存在於本次畫面中';
+
+  if(filtered.length === 0){
+    listEl.innerHTML = `<div class="hist-empty">${all.length===0 ? '尚無占卜紀錄，起一卦之後會自動保存在這裡。' : '沒有符合搜尋條件的紀錄。'}</div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(r => `
+    <div class="hist-card" data-id="${r.id}">
+      <div class="hist-head">
+        <div>
+          <div class="hist-gua">${r.guaName}<span class="arrow">→</span>${r.changedGuaName}</div>
+          <div class="hist-when">${fmtSavedAt(r.savedAt)}　|　起卦時間：${r.castLabel}（${r.lunarLabel}）</div>
+        </div>
+        <div class="hist-badges">
+          ${r.category ? `<span class="hist-tag">${r.category}</span>` : ''}
+          <span class="hist-lv ${r.verdictCls}">${r.verdictLabel}</span>
+          <span class="hist-del" title="刪除這筆紀錄" data-del="${r.id}">✕</span>
+        </div>
+      </div>
+      <div class="hist-q ${r.question?'':'empty'}">${r.question ? '所問：' + escapeHtml(r.question) : '（未填寫具體問題）'}</div>
+      <div class="hist-detail">
+        體用：<b>${r.tiName}</b>（${r.tiEl}）／<b>${r.yongName}</b>（${r.yongEl}）－${r.relation}　|　動爻：第${r.moveLine}爻　|　
+        應期：<b>${fmtShortDate(r.numDateISO)}</b>${r.edLabel ? `、<b>${fmtShortDate(r.edDateISO)}</b>（${r.edLabel}）` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+document.getElementById('historySearch').addEventListener('input', (e)=>{
+  renderHistory(e.target.value);
+});
+document.getElementById('historyList').addEventListener('click', (e)=>{
+  const delId = e.target.getAttribute('data-del');
+  if(delId) deleteHistoryRecord(delId);
+});
+document.getElementById('historyClear').addEventListener('click', ()=>{
+  if(loadHistory().length === 0) return;
+  if(confirm('確定要清空所有占卜紀錄嗎？此動作無法復原。')){
+    persistHistory([]);
+    renderHistory('');
+  }
+});
+
+// ==================== 分頁切換 ====================
+document.querySelectorAll('.nav-tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    document.getElementById('castView').style.display = target==='cast' ? 'block' : 'none';
+    document.getElementById('historyView').style.display = target==='history' ? 'block' : 'none';
+    if(target==='history') renderHistory(document.getElementById('historySearch').value);
+  });
+});
+
+renderHistory('');
+
 </script>
 </body>
 </html>
