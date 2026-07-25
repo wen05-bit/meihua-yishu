@@ -44,6 +44,22 @@
   header p{font-size:14px;color:var(--mist);letter-spacing:0.02em;line-height:1.8;}
 
   .nav-tabs{display:flex;gap:6px;margin-bottom:24px;border-bottom:1px solid #2a2f3a;}
+
+  .auth-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    padding:10px 16px;margin-bottom:14px;border-radius:4px;
+    background:rgba(201,162,39,0.06);border:1px solid #2a2f3a;
+  }
+  .auth-status{font-size:12.5px;color:var(--mist);letter-spacing:0.03em;}
+  .auth-status.signed-in{color:var(--gold);}
+  .auth-migrate{font-size:12px;color:var(--jade);cursor:pointer;text-decoration:underline;letter-spacing:0.03em;}
+  .auth-btn{
+    padding:7px 16px;border-radius:3px;border:1px solid var(--gold);background:transparent;
+    color:var(--gold);font-size:12.5px;letter-spacing:0.05em;cursor:pointer;transition:all .2s;
+  }
+  .auth-btn:hover{background:var(--gold);color:#2a251e;}
+  .auth-btn.signed-in{border-color:#565b66;color:var(--mist);}
+  .auth-btn.signed-in:hover{background:#565b66;color:#f2ead6;}
   .nav-tab{
     padding:11px 22px;font-size:14px;color:var(--mist);cursor:pointer;user-select:none;
     letter-spacing:0.1em;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .2s;
@@ -236,6 +252,30 @@
   }
   .change-note b{color:var(--ink);}
 
+  .yao-note{
+    margin-top:20px;padding-top:18px;border-top:1px solid var(--paper-shadow);
+  }
+  .yao-head{
+    font-family:'Noto Serif TC',serif;font-size:13px;font-weight:600;color:var(--jade);
+    letter-spacing:0.15em;margin-bottom:10px;
+  }
+  .yao-ci-quote{
+    font-family:'Noto Serif TC',serif;font-size:15px;color:var(--ink);line-height:1.9;
+    padding:12px 16px;margin-bottom:14px;background:rgba(76,107,84,0.05);
+    border-left:2px solid var(--jade);letter-spacing:0.03em;
+  }
+  .yao-ci-quote .yc-name{color:var(--jade);font-weight:600;margin-right:6px;}
+  .yao-ci-quote .yc-source{display:block;font-family:'Noto Sans TC',sans-serif;font-size:11px;color:#9a917a;margin-top:6px;letter-spacing:0.05em;}
+  .yao-body{font-size:13.5px;color:#3a3428;line-height:2;}
+  .yao-body b{color:var(--jade);font-family:'Noto Serif TC',serif;}
+  .yao-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .yao-tag{
+    font-size:11.5px;padding:3px 11px;border-radius:999px;letter-spacing:0.05em;
+    border:1px solid var(--paper-shadow);color:#6b6250;
+  }
+  .yao-tag.pos{border-color:var(--jade);color:var(--jade);background:rgba(76,107,84,0.08);}
+  .yao-tag.neg{border-color:var(--cinnabar);color:var(--cinnabar);background:rgba(183,64,42,0.06);}
+
   .calc-toggle{
     margin-top:20px;padding-top:16px;border-top:1px solid var(--paper-shadow);
     font-size:13px;color:var(--jade);cursor:pointer;user-select:none;
@@ -281,6 +321,12 @@
     <h1>梅花易數</h1>
     <p>「萬物皆有數，心動即天機。」<br>誠心一念，依當下時刻起卦，體用生克，自見端倪。</p>
   </header>
+
+  <div class="auth-bar" id="authBar">
+    <span class="auth-status" id="authStatus">尚未登入・紀錄僅存在本機瀏覽器</span>
+    <span class="auth-migrate" id="authMigrate" style="display:none"></span>
+    <button class="auth-btn" id="authBtn">使用 Google 登入</button>
+  </div>
 
   <div class="nav-tabs">
     <div class="nav-tab active" data-tab="cast">起卦</div>
@@ -347,6 +393,13 @@
 
       <div class="change-note" id="changeNote"></div>
 
+      <div class="yao-note" id="yaoNote">
+        <div class="yao-head">動爻解法</div>
+        <div class="yao-ci-quote" id="yaoCiQuote"></div>
+        <div class="yao-tags" id="yaoTags"></div>
+        <div class="yao-body" id="yaoBody"></div>
+      </div>
+
       <div class="calc-toggle" id="calcToggle">
         <span class="arrow">▾</span>
         <span>顯示詳細推算過程</span>
@@ -372,7 +425,29 @@
 
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, setDoc, deleteDoc, getDocs, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAMiroD2aMZyGVnG46FmSYXk4JmKjQgwVc",
+  authDomain: "observe-69056.firebaseapp.com",
+  projectId: "observe-69056",
+  storageBucket: "observe-69056.firebasestorage.app",
+  messagingSenderId: "301403759517",
+  appId: "1:301403759517:web:1fec381dc3923fc3c54574"
+};
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+const googleProvider = new GoogleAuthProvider();
+
+let currentUser = null;
 
 const TRIGRAMS = [
   {name:'乾', symbol:'☰', nature:'天', el:'金', trait:'剛健自強，居上位而動'},
@@ -402,6 +477,20 @@ const GUA_NAMES = [
   ['地天泰','地澤臨','地火明夷','地雷復','地風升','地水師','地山謙','坤為地']
 ];
 function guaName(upperIdx, lowerIdx){ return GUA_NAMES[upperIdx-1][lowerIdx-1]; }
+
+// ---- 384爻爻辭原文（周易經文），依 [上卦索引][下卦索引][爻位1-6] 查詢 ----
+// 資料來源：整理自公開易經結構化資料集，並與維基文庫《周易》逐條比對校正過已知錯字（如乾卦九二誤植為「見龍再田」已修正為「見龍在田」）。
+const YAO_CI = [
+  [['潛龍，勿用。','見龍在田，利見大人。','君子終日乾乾，夕惕若，厲無咎。','或躍在淵，無咎。','飛龍在天，利見大人。','亢龍有悔。'],['素履，往，無咎。','履道坦坦，幽人貞吉。','眇能視，跛能履，履虎尾，咥人，兇；武人爲於大君。','履虎尾，愬愬，終吉。','夬履，貞厲。','視履考祥，其旋元吉。'],['同人於門，無咎。','同人於宗，吝。','伏戎於莽，升其高陵，三歲不興。','乘其墉，弗克攻，吉。','同人，先號咷，而後笑，大師克相遇。','同人於郊，無悔。'],['無妄，往吉。','不耕穫，不菑畬，則利有攸往。','無妄之災：或繫之牛，行人之得，邑人之災。','可貞，無咎。','無妄之疾，勿藥有喜。','無妄，行有眚，無攸利。'],['繫於金柅，貞吉；有攸往，見兇，羸豕孚躑躅。','包有魚，無咎，不利賓。','臀無膚，其行次且；厲，無大咎。','包無魚，起兇。','以杞包瓜，含章，有隕自天。','姤其角，吝，無咎。'],['不永所事，小有言，終吉。','不克訟，歸而逋，其邑人三百戶，無眚。','食舊德，貞厲，終吉；或從王事，無成。','不克訟；復即命，渝，安貞，吉。','訟，元吉。','或錫之鞶帶，終朝三褫之。'],['遁尾，厲，勿用有攸往。','執之用黃牛之革，莫之勝說。','系遁，有疾厲；畜臣妾，吉。','好遁，君子吉，小人否。','嘉遁，貞吉。','肥遁，無不利。'],['拔茅茹，以其匯，貞吉，亨。','包承，小人吉。大人否，亨。','包羞。','有命無咎，疇離祉。','休否，大人吉；其亡其亡，繫於苞桑。','傾否，先否後喜。']],
+  [['壯於前趾，往不勝爲咎。','惕號，莫夜有戎，勿恤。','壯於頄，有兇。君子夬夬獨行，遇雨若濡，有慍無咎。','臀無膚，其行次且；牽羊悔亡，聞言不信。','莧陸夬夬，中行無咎。','無號，終有兇。'],['和兌，吉。','孚兌，吉，悔亡。','來兌，兇。','商兌未寧，介疾有喜。','孚於剝，有厲。','引兌。'],['鞏用黃牛之革。','巳日乃革之，徵吉，無咎。','徵兇，貞厲；革言三就，有孚。','悔亡，有孚改命，吉。','大人虎變，未佔有孚。','君子豹變，小人革面；徵兇，居貞吉。'],['官有渝，貞吉；出門交有功。','系小子，失丈夫。','系丈夫，失小子；隨有求得，利居貞。','隨有獲，貞兇；有孚在道，以明，何咎？','孚於嘉，吉。','拘繫之，乃從維之；王用亨於西山。'],['藉用白茅，無咎。','枯楊生稊，老夫得其女妻；無不利。','棟橈，兇。','棟隆，吉；有它，吝。','枯楊生華，老婦得其士夫，無咎無譽。','過涉滅頂；兇，無咎。'],['臀困於株木，入於幽谷，三歲不覿。','困於酒食，朱紱方來，利用享祀；徵兇，無咎。','困於石，據於蒺藜，入於其宮，不見其妻，兇。','來徐徐，困於金車，吝，有終。','劓刖，困於赤紱，乃徐有說，利用祭祀。','困於葛藟，於臲卼，曰動悔，有悔。徵吉。'],['咸其拇。','咸其腓，兇；居吉。','咸其股，執其隨，往吝。','貞吉，悔亡，憧憧往來，朋從爾思。','咸其脢，無悔。','咸其輔頰舌。'],['有孚不終，乃亂乃萃；若號，一握爲笑，勿恤，往無咎。','引吉，無咎；孚乃利用禴。','萃如，嗟如，無攸利；往無咎，小吝。','大吉，無咎。','萃有位，無咎；匪孚，元永貞，悔亡。','齎諮涕洟，無咎。']],
+  [['無交害，匪咎；艱則無咎。','大車以載，有攸往，無咎。','公用亨於天子，小人弗克。','匪其彭，無咎。','厥孚交如，威如，吉。','自天祐之，吉無不利。'],['悔亡；喪馬勿逐，自復；見惡人，無咎。','遇主於巷，無咎。','見輿曳，其牛掣；其人天且劓。無初有終。','睽孤，遇元夫，交孚，厲無咎。','悔亡，厥宗噬膚，往何咎？','睽孤，見豕負塗，載鬼一車，先張之弧，後說之弧；匪寇婚媾，往遇雨則吉。'],['履錯然，敬之，無咎。','黃離，元吉。','日昃之離，不鼓缶而歌，則大耋之嗟，兇。','突如其來如，焚如，死如，棄如。','出涕沱若，戚嗟若，吉。','王用出徵，有嘉折首，獲匪其醜，無咎。'],['屨校滅趾，無咎。','噬膚滅鼻，無咎。','噬臘肉，遇毒；小吝，無咎。','噬幹胏，得金矢；利艱貞，吉。','噬乾肉，得黃金，貞厲，無咎。','何校滅耳，兇。'],['鼎顛趾，利出否；得妾以其子，無咎。','鼎有實，我仇有疾，不我能即，吉。','鼎耳革，其行塞。雉膏不食；方雨虧悔，終吉。','鼎折足，覆公餗，其形渥，兇。','鼎黃耳，金鉉，利貞。','鼎玉鉉，大吉，無不利。'],['濡其尾，吝。','曳其輪，貞吉。','未濟，徵兇，利涉大川。','貞吉，悔亡；震用伐鬼方，三年有賞於大國。','貞吉，無悔；君子之光，有孚，吉。','有孚於飲酒；無咎，濡其首，有孚失是。'],['旅瑣瑣，斯其所取災。','旅即次，懷其資，得童僕，貞。','旅焚其次，喪其童僕，貞厲。','旅於處，得其資斧，我心不快。','射雉，一矢亡；終以譽命。','鳥焚其巢，旅人先笑後號啕；喪牛於易，兇。'],['晉如摧如，貞吉。罔孚，裕無咎。','晉如愁如，貞吉，受茲介福，於其王母。','衆允，悔亡。','晉如鼫鼠，貞厲。','悔亡，失得勿恤，往吉，無不利。','晉其角，維用伐邑，厲吉無咎。貞吝。']],
+  [['壯於趾，徵兇，有孚。','貞吉。','小人用壯，君子用罔；貞厲。羝羊觸藩，羸其角。','貞吉，悔亡；藩決不羸，壯於大輿之輹。','喪羊於易，無悔。','羝羊觸藩，不能退，不能遂，無攸利；艱則吉。'],['歸妹以娣，跛能履，徵吉。','眇能視，利幽人之貞。','歸妹以須，反歸以娣。','歸妹愆期，遲歸有時。','帝乙歸妹，其君之袂，不如其娣之袂良；月幾望，吉。','女承筐，無實；士刲羊，無血。無攸利。'],['遇其配主，雖旬無咎，往有尚。','豐其蔀，日中見鬥。往得疑疾，有孚發若，吉。','豐其沛，日中見沬；折其右肱，無咎。','豐其蔀，日中見鬥，遇其夷主，吉。','來章，有慶譽，吉。','豐其屋，蔀其家，窺其戶，闃其無人，三歲不覿，兇。'],['震來虩虩，後笑言啞啞，吉。','震來厲，億喪貝，躋於九陵，勿逐，七日得。','震蘇蘇，震行無眚。','震遂泥。','震往來，厲；億無喪，有事。','震索索，視矍矍，徵兇。震不於其躬，於其鄰，無咎。婚媾有言。'],['浚恆，貞兇，無攸利。','悔亡。','不恆其德，或承之羞；貞吝。','田無禽。','恆其德，貞；婦人吉，夫子兇。','振恆，兇。'],['無咎。','田獲三狐，得黃矢；貞吉。','負且乘，致寇至，貞吝。','解而拇，朋至斯孚。','君子維有解，吉，有孚於小人。','公用射隼於高墉之上，獲之，無不利。'],['飛鳥以兇。','過其祖，遇其妣；不及其君，遇其臣，無咎。','弗過防之，從或戕之，兇。','無咎，弗過遇之；往厲必戒，勿用永貞。','密雲不雨，自我西郊；公弋取彼在穴。','弗遇過之；飛鳥離之，兇，是謂災眚。'],['鳴豫，兇。','介於石，不終日，貞吉。','盱豫，悔。遲有悔。','由豫，大有得；勿疑。朋盍簪。','貞疾，恆不死。','冥豫，成有渝，無咎。']],
+  [['復自道，何其咎？吉。','牽復，吉。','輿說輻，夫妻反目。','有孚，血去惕出，無咎。','有孚攣如，富以其鄰。','既雨既處，尚德載；婦貞厲，月幾望；君子徵兇。'],['虞吉，有他不燕。','鳴鶴在陰，其子和之；我有好爵，吾與爾靡之。','得敵，或鼓或罷，或泣或歌。','月幾望，馬匹亡，無咎。','有孚攣如，無咎。','翰音登於天，貞兇。'],['閒有家，悔亡。','無攸遂，在中饋，貞吉。','家人嗃嗃，悔厲，吉；婦子嘻嘻，終吝。','富家，大吉。','王假有家，勿恤，吉。','有孚，威如，終吉。'],['利用爲大作，元吉，無咎。','或益之十朋之龜，弗克違。永貞吉；王用享於帝，吉。','益之用凶事，無咎；有孚中行，告公用圭。','中行，告公從，利用爲依遷國。','有孚惠心，勿問元吉。有孚惠我德。','莫益之，或擊之，立心勿恆，兇。'],['進退，利武人之貞。','巽在牀下，用史巫紛若，吉，無咎。','頻巽，吝。','悔亡，田獲三品。','貞吉，悔亡，無不利。無初有終。先庚三日，後庚三日，吉。','巽在牀下，喪其資斧，貞兇。'],['用拯馬壯，吉。','渙奔其機，悔亡。','渙其躬，無悔。','渙其羣，元吉；渙有丘，匪夷所思。','渙汗其大號，渙王居，無咎。','渙其血去逖出，無咎。'],['鴻漸於幹；小子厲，有言，無咎。','鴻漸於磐，飲食衎衎，吉。','鴻漸於陸，夫徵不復，婦孕不育，兇；利禦寇。','鴻漸於木，或得其桷，無咎。','鴻漸於陵，婦三歲不孕；終莫之勝，吉。','鴻漸於陸，其羽可用爲儀，吉。'],['童觀，小人無咎，君子吝。','窺觀，利女貞。','觀我生，進退。','觀國之光，利用賓於王。','觀我生，君子無咎。','觀其生，君子無咎。']],
+  [['需於郊，利用恆，無咎。','需於沙，小有言；終吉。','需於泥，致寇至。','需於血，出自穴。','需於酒食，貞吉。','入於穴，有不速之客三人來；敬之，終吉。'],['不出戶庭，無咎。','不出門庭，兇。','不節若，則嗟若，無咎。','安節，亨。','甘節，吉。往有尚。','苦節，貞兇，悔亡。'],['曳其輪，濡其尾，無咎。','婦喪其茀，勿逐，七日得。','高宗伐鬼方，三年克之；小人勿用。','繻有衣袽，終日戒。','東鄰殺牛，不如西鄰之禴祭，實受其福。','濡其首，厲。'],['磐桓；利居貞，利建侯。','屯如，邅如，乘馬班如。匪寇婚媾。女子貞不字，十年乃字。','即鹿無虞，惟入於林中，君子幾，不如舍，往吝。','乘馬班如，求婚媾，往吉，無不利。','屯其膏，小貞吉，大貞兇。','乘馬班如，泣血漣如。'],['井泥不食，舊井無禽。','井谷射鮒，甕敝漏。','井渫不食，爲我心惻；可用汲，王明，並受其福。','井甃，無咎。','井冽，寒泉食。','井收勿幕，有孚元吉。'],['習坎，入於坎窞，兇。','坎有險，求小得。','來之坎坎，險且枕，入於坎窞，勿用。','樽酒，簋貳，用缶，納約自牖，終無咎。','坎不盈，祗既平，無咎。','係用徽纆，寘於叢棘，三歲不得，兇。'],['往蹇，來譽。','王臣蹇蹇，匪躬之故。','往蹇，來反。','往蹇，來連。','大蹇，朋來。','往蹇，來碩；吉，利見大人。'],['有孚比之，無咎；有孚盈缶，終來有它，吉。','比之自內，貞吉。','比之匪人。','外比之，貞吉。','顯比；王用三驅，失前禽。邑人不誡，吉。','比之無首，兇。']],
+  [['有厲，利已。','輿說輹。','良馬逐，利艱貞。曰閒輿衛，利有攸往。','童牛之牿，元吉。','豶豕之牙，吉。','何天之衢，亨。'],['已事遄往，無咎；酌損之。','利貞，徵兇；弗損益之。','三人行，則損一人；一人行，則得其友。','損其疾，使遄有喜，無咎。','或益之十朋之龜，弗克違，元吉。','弗損益之，無咎。貞吉，利有攸往，得臣無家。'],['賁其趾，舍車而徒。','賁其須。','賁如，濡如，永貞吉。','賁如，皤如，白馬翰如，匪寇，婚媾。','賁於丘園，束帛戔戔；吝，終吉。','白賁，無咎。'],['舍爾靈龜，觀我朵頤，兇。','顛頤；拂經於丘頤，徵兇。','拂頤；貞兇，十年勿用；無攸利。','顛頤，吉；虎視眈眈，其欲逐逐，無咎。','拂經；居貞吉，不可涉大川。','由頤；厲吉，利涉大川。'],['幹父之蠱，有子，考無咎，厲終吉。','幹母之蠱，不可貞。','幹父之蠱，小有悔，無大咎。','裕父之蠱，往見吝。','幹父之蠱，用譽。','不事王侯，高尚其事。'],['發矇，利用刑人，用說桎梏；以往吝。','包蒙，吉。納婦，吉；子克家。','勿用取女，見金夫，不有躬，無攸利。','困蒙，吝。','童蒙，吉。','擊蒙；不利爲寇，利禦寇。'],['艮其趾，無咎，利永貞。','艮其腓，不拯其隨，其心不快。','艮其限，列其夤，厲燻心。','艮其身，無咎。','艮其輔，言有序，悔亡。','敦艮，吉。'],['剝牀以足，蔑貞；兇。','剝牀以辨，蔑貞兇。','剝之，無咎。','剝牀以膚，兇。','貫魚以宮人寵，無不利。','碩果不食，君子得輿，小人剝廬。']],
+  [['拔茅茹，以其匯，徵吉。','包荒，用馮河，不遐遺；朋亡，得尚於中行。','無平不陂，無往不復；艱貞無咎，勿恤其孚，於食有福。','翩翩，不富，以其鄰，不戒以孚。','帝乙歸妹，以祉元吉。','城復於隍，勿用師，自邑告命，貞吝。'],['鹹臨，貞吉。','鹹臨，吉，無不利。','甘臨，無攸利；既憂之，無咎。','至臨，無咎。','知臨，大君之宜，吉。','敦臨，吉，無咎。'],['明夷于飛，垂其翼；君子於行，三日不食。有攸往，主人有言。','明夷，夷於左股，用拯馬壯，吉。','明夷於南狩，得其大首。不可疾貞。','入於左腹，獲明夷之心，於出門庭。','箕子之明夷，利貞。','不明晦，初登於天，後入於地。'],['不遠復，無祗悔，元吉。','休復，吉。','頻復，厲無咎。','中行獨復。','敦復，無悔。','迷復，兇，有災眚。用行師，終有大敗；以其國，君兇，至於十年不克徵。'],['允升，大吉。','孚乃利用禴，無咎。','升虛邑。','王用亨於岐山，吉無咎。','貞吉，升階。','冥升，利於不息之貞。'],['師出以律，否臧兇。','在師中吉，無咎；王三錫命。','師或輿尸，兇。','師左次，無咎。','田有禽，利執言，無咎；長子帥師，弟子輿尸，貞兇。','大君有命，開國承家，小人勿用。'],['謙謙君子，用涉大川，吉。','鳴謙，貞吉。','勞謙，君子有終，吉。','無不利，撝謙。','不富以其鄰，利用侵伐，無不利。','鳴謙，利用行師，徵邑國。'],['履霜，堅冰至。','直方大，不習無不利。','含章可貞；或從王事，無成有終。','括囊，無咎無譽。','黃裳，元吉。','龍戰於野，其血玄黃。']],
+];
+function yaoCiText(upperIdx, lowerIdx, position){ return YAO_CI[upperIdx-1][lowerIdx-1][position-1]; }
 
 // ---- 農曆換算（1900-2100 標準陰曆資料表，與通行農曆演算法比對一致） ----
 const LUNAR_INFO = [0x04bd8,0x04ae0,0x0a570,0x054d5,0x0d260,0x0d950,0x16554,0x056a0,0x09ad0,0x055d2,
@@ -516,6 +605,35 @@ const TREND_BY_RELATION = {
   '體生用':'從卦象結構看，投入與回報之間可能不對等，付出的心力容易大於實際成果，走向偏向消耗。',
   '用克體':'從卦象結構看，外部制約大於自身掌控力，情勢容易受制於人或環境，走向偏向阻滯、延宕。'
 };
+
+// ---- 動爻解法：傳統易經爻位理論（當位、中位、相應） ----
+// 1、3、5爻為陽位，2、4、6爻為陰位；陽爻居陽位或陰爻居陰位稱「當位／得正」。
+// 2、5爻為「中位」。1↔4、2↔5、3↔6互為「應」，陰陽相反則「相應」，相同則「不應」。
+function classicalLineName(position, isYang){
+  const yy = isYang ? '九' : '六';
+  if(position===1) return '初'+yy;
+  if(position===6) return '上'+yy;
+  const num = {2:'二',3:'三',4:'四',5:'五'}[position];
+  return yy+num;
+}
+function lineTheory(fullLines, position){
+  const idx = position - 1;
+  const val = fullLines[idx];
+  const isYang = val === 1;
+  const posIsYang = (position % 2 === 1);
+  const proper = isYang === posIsYang;
+  const isMiddle = (position === 2 || position === 5);
+  const pairMap = {1:4, 2:5, 3:6, 4:1, 5:2, 6:3};
+  const pairPos = pairMap[position];
+  const pairVal = fullLines[pairPos-1];
+  const pairIsYang = pairVal === 1;
+  const responds = pairIsYang !== isYang;
+  return {
+    isYang, proper, isMiddle, responds,
+    name: classicalLineName(position, isYang),
+    pairPos, pairName: classicalLineName(pairPos, pairIsYang)
+  };
+}
 
 const SIGNAL_BY_LINE = {
   1:'事情才剛萌芽，根基尚未穩固，此時的變化多來自自身準備或內部條件是否充分，留意起步階段的小狀況。',
@@ -658,7 +776,7 @@ function hourToShichen(h){
   return idx+1;
 }
 
-function cast(){
+async function cast(){
   let now;
   if(timeMode === 'custom' && customTimeInput.value){
     now = new Date(customTimeInput.value);
@@ -747,6 +865,33 @@ function cast(){
   document.getElementById('changeNote').innerHTML =
     `第 ${moveLine} 爻動，變為 <b>${guaName(cUpperIdx,cLowerIdx)}</b>（${cUpper.name}上${cLower.name}下）——此為事態後續演變之勢，若初象未如意，亦可留意此變化方向。`;
 
+  // 動爻解法：當位、中位、相應 ＋ 爻辭原文
+  const lt = lineTheory(full, moveLine);
+  const ciText = yaoCiText(upperIdx, lowerIdx, moveLine);
+  document.getElementById('yaoCiQuote').innerHTML =
+    `<span class="yc-name">${lt.name}</span>「${ciText}」<span class="yc-source">《周易》${guaName(upperIdx,lowerIdx)}卦・原文</span>`;
+
+  const yaoTagsHtml = [
+    `<span class="yao-tag">${lt.name}　${lt.isYang?'陽爻（一）':'陰爻（--）'}</span>`,
+    `<span class="yao-tag ${lt.proper?'pos':'neg'}">${lt.proper?'當位':'不當位'}</span>`,
+    lt.isMiddle ? `<span class="yao-tag pos">居中位</span>` : '',
+    `<span class="yao-tag ${lt.responds?'pos':'neg'}">與第${lt.pairPos}爻（${lt.pairName}）${lt.responds?'相應':'不相應'}</span>`
+  ].join('');
+  document.getElementById('yaoTags').innerHTML = yaoTagsHtml;
+  document.getElementById('yaoBody').innerHTML =
+    `本卦動爻為 <b>${lt.name}</b>，位居第 ${moveLine} 爻（${moveLine%2===1?'陽位':'陰位'}），爻本身為<b>${lt.isYang?'陽':'陰'}</b>。` +
+    `${lt.proper
+      ? '陽爻居陽位、或陰爻居陰位，稱為「當位」（得正）——這代表此爻所反映的處境，性質與位置相符，行事相對穩妥、名正言順，是結構上較為有利的細節。'
+      : '爻的陰陽與所居爻位不合，稱為「不當位」（失正）——這代表此爻所反映的處境，性質與位置有落差，行事容易碰到名不正言不順的阻力，需要更謹慎處理細節，不能只憑一股衝勁。'
+    } ` +
+    `${lt.isMiddle ? '此爻恰好居於「中位」（六爻中的第二、第五爻），中位在傳統爻位理論裡向來是相對有利的位置，代表行事有節制、不偏不倚，即使不當位，也能因居中而有所緩解。 ' : ''}` +
+    `與之相應的是第 <b>${lt.pairPos}</b> 爻（<b>${lt.pairName}</b>）——` +
+    `${lt.responds
+      ? '兩爻陰陽相反，稱為「相應」，代表這件事目前具備外部條件的配合，內外能互相呼應，較容易得到助力。'
+      : '兩爻陰陽相同，稱為「不相應」，代表這件事目前缺乏外部呼應，較需要靠自己主動推動，不能只被動等待外力介入。'
+    }` +
+    `<br><br>上面引的「${ciText}」就是這一爻在《周易》原文裡的文字依據，是三千年前留下的古文，用字精簡、多用具體物象打比方，歷代注家的解讀本來就不完全一致，這裡不擅自把它翻譯成單一定論。${q ? `對照你問的「${q}」，` : '若要對應到具體問題，'}比較穩妥的做法是把這句原文當作意象參考，實際判斷仍以上面「當位／中位／相應」的結構分析，以及前面體用生克算出的${vb.label}與決策建議為準——這樣才不會因為古文一句話的字面聯想，蓋過了整體卦象算出來的結論。`;
+
   // 詳細推算過程
   const upperRaw = upperSum % 8;
   const lowerRaw = lowerSum % 8;
@@ -826,7 +971,7 @@ function cast(){
   void document.getElementById('seal').offsetWidth;
   document.getElementById('seal').classList.add('show');
 
-  saveHistoryRecord({
+  await saveHistoryRecord({
     savedAt: new Date().toISOString(),
     castTimeMode: timeMode,
     castLabel: `${solarY}/${solarM}/${pad(solarD)} ${pad(now.getHours())}:${pad(now.getMinutes())}`,
@@ -852,6 +997,7 @@ function cast(){
   });
 
   document.getElementById('result').scrollIntoView({behavior:'smooth', block:'nearest'});
+  refreshRecords();
 }
 
 document.getElementById('castBtn').addEventListener('click', cast);
@@ -865,7 +1011,7 @@ calcToggle.addEventListener('click', ()=>{
   calcToggle.querySelector('span:last-child').textContent = isOpen ? '顯示詳細推算過程' : '收合詳細推算過程';
 });
 
-// ==================== 占卜紀錄（localStorage） ====================
+// ==================== 占卜紀錄（本機 localStorage ／ 登入後改用 Firestore 雲端） ====================
 const HISTORY_KEY = 'meihua_records_v1';
 let storageAvailable = true;
 try{
@@ -873,32 +1019,82 @@ try{
   localStorage.setItem(t,'1'); localStorage.removeItem(t);
 }catch(e){ storageAvailable = false; }
 
-function loadHistory(){
+let cachedRecords = [];
+
+function loadLocalHistory(){
   if(!storageAvailable) return [];
   try{
     const raw = localStorage.getItem(HISTORY_KEY);
     return raw ? JSON.parse(raw) : [];
   }catch(e){ return []; }
 }
-function persistHistory(arr){
+function persistLocalHistory(arr){
   if(!storageAvailable) return;
   try{
     localStorage.setItem(HISTORY_KEY, JSON.stringify(arr));
   }catch(e){ console.error('儲存紀錄失敗', e); }
 }
-function saveHistoryRecord(rec){
-  if(!storageAvailable) return;
+
+function recordsCollection(){
+  return collection(db, 'users', currentUser.uid, 'records');
+}
+
+async function fetchAllRecords(){
+  if(currentUser){
+    try{
+      const snap = await getDocs(recordsCollection());
+      const arr = [];
+      snap.forEach(d => arr.push(d.data()));
+      arr.sort((a,b) => (b.savedAt||'').localeCompare(a.savedAt||''));
+      return arr;
+    }catch(e){
+      console.error('讀取雲端紀錄失敗', e);
+      return [];
+    }
+  }
+  return loadLocalHistory();
+}
+
+async function saveHistoryRecord(rec){
   rec.id = Date.now() + '_' + Math.random().toString(36).slice(2,8);
-  const arr = loadHistory();
-  arr.unshift(rec);
-  if(arr.length > 300) arr.length = 300;
-  persistHistory(arr);
+  if(currentUser){
+    try{
+      await setDoc(doc(recordsCollection(), rec.id), rec);
+    }catch(e){ console.error('雲端儲存失敗', e); }
+  } else {
+    if(!storageAvailable) return;
+    const arr = loadLocalHistory();
+    arr.unshift(rec);
+    if(arr.length > 300) arr.length = 300;
+    persistLocalHistory(arr);
+  }
 }
-function deleteHistoryRecord(id){
-  const arr = loadHistory().filter(r => r.id !== id);
-  persistHistory(arr);
-  renderHistory(document.getElementById('historySearch').value);
+
+async function deleteHistoryRecord(id){
+  if(currentUser){
+    try{ await deleteDoc(doc(recordsCollection(), id)); }
+    catch(e){ console.error('雲端刪除失敗', e); }
+  } else {
+    const arr = loadLocalHistory().filter(r => r.id !== id);
+    persistLocalHistory(arr);
+  }
+  await refreshRecords();
 }
+
+async function clearAllHistory(){
+  if(currentUser){
+    try{
+      const snap = await getDocs(recordsCollection());
+      const batch = writeBatch(db);
+      snap.forEach(d => batch.delete(d.ref));
+      await batch.commit();
+    }catch(e){ console.error('雲端清空失敗', e); }
+  } else {
+    persistLocalHistory([]);
+  }
+  await refreshRecords();
+}
+
 function fmtSavedAt(iso){
   const d = new Date(iso);
   return `${fmtDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())} 記錄`;
@@ -908,10 +1104,16 @@ function fmtShortDate(iso){
   const d = new Date(iso);
   return `${d.getMonth()+1}/${d.getDate()}`;
 }
-function renderHistory(filterText){
+
+async function refreshRecords(){
+  cachedRecords = await fetchAllRecords();
+  renderHistoryList(document.getElementById('historySearch').value);
+}
+
+function renderHistoryList(filterText){
   const listEl = document.getElementById('historyList');
   const countEl = document.getElementById('historyCount');
-  const all = loadHistory();
+  const all = cachedRecords;
   const kw = (filterText||'').trim().toLowerCase();
   const filtered = kw ? all.filter(r =>
     (r.question||'').toLowerCase().includes(kw) ||
@@ -920,8 +1122,9 @@ function renderHistory(filterText){
     (r.changedGuaName||'').toLowerCase().includes(kw)
   ) : all;
 
-  countEl.textContent = storageAvailable
-    ? `共 ${all.length} 筆紀錄${kw?`，符合搜尋 ${filtered.length} 筆`:''}`
+  const sourceNote = currentUser ? '（雲端同步）' : '（僅存本機）';
+  countEl.textContent = storageAvailable || currentUser
+    ? `共 ${all.length} 筆紀錄${sourceNote}${kw?`，符合搜尋 ${filtered.length} 筆`:''}`
     : '此瀏覽器無法使用本機儲存，紀錄僅存在於本次畫面中';
 
   if(filtered.length === 0){
@@ -958,33 +1161,94 @@ function escapeHtml(s){
 }
 
 document.getElementById('historySearch').addEventListener('input', (e)=>{
-  renderHistory(e.target.value);
+  renderHistoryList(e.target.value);
 });
 document.getElementById('historyList').addEventListener('click', (e)=>{
   const delId = e.target.getAttribute('data-del');
   if(delId) deleteHistoryRecord(delId);
 });
 document.getElementById('historyClear').addEventListener('click', ()=>{
-  if(loadHistory().length === 0) return;
+  if(cachedRecords.length === 0) return;
   if(confirm('確定要清空所有占卜紀錄嗎？此動作無法復原。')){
-    persistHistory([]);
-    renderHistory('');
+    clearAllHistory();
   }
+});
+
+// ==================== 登入（Google／Firebase） ====================
+const authBtn = document.getElementById('authBtn');
+const authStatus = document.getElementById('authStatus');
+const authMigrate = document.getElementById('authMigrate');
+
+authBtn.addEventListener('click', async ()=>{
+  if(currentUser){
+    await signOut(auth);
+  } else {
+    authBtn.disabled = true;
+    try{
+      await signInWithPopup(auth, googleProvider);
+    }catch(e){
+      console.error('登入失敗', e);
+      alert('登入失敗，請確認網路連線，或稍後再試。（若你是網站架設者，請檢查 Firebase 已授權網域設定）');
+    }
+    authBtn.disabled = false;
+  }
+});
+
+async function migrateLocalToCloud(){
+  const local = loadLocalHistory();
+  if(local.length === 0 || !currentUser) return;
+  authMigrate.textContent = `同步中…（0/${local.length}）`;
+  let done = 0;
+  for(const rec of local){
+    try{
+      await setDoc(doc(recordsCollection(), rec.id), rec);
+    }catch(e){ console.error('同步失敗', rec.id, e); }
+    done++;
+    authMigrate.textContent = `同步中…（${done}/${local.length}）`;
+  }
+  persistLocalHistory([]);
+  authMigrate.style.display = 'none';
+  await refreshRecords();
+}
+
+onAuthStateChanged(auth, async (user)=>{
+  currentUser = user;
+  if(user){
+    authStatus.textContent = `已登入：${user.displayName || user.email}`;
+    authStatus.classList.add('signed-in');
+    authBtn.textContent = '登出';
+    authBtn.classList.add('signed-in');
+
+    const local = loadLocalHistory();
+    if(local.length > 0){
+      authMigrate.style.display = 'inline';
+      authMigrate.textContent = `同步本機 ${local.length} 筆紀錄到雲端`;
+      authMigrate.onclick = migrateLocalToCloud;
+    } else {
+      authMigrate.style.display = 'none';
+    }
+  } else {
+    authStatus.textContent = '尚未登入・紀錄僅存在本機瀏覽器';
+    authStatus.classList.remove('signed-in');
+    authBtn.textContent = '使用 Google 登入';
+    authBtn.classList.remove('signed-in');
+    authMigrate.style.display = 'none';
+  }
+  await refreshRecords();
 });
 
 // ==================== 分頁切換 ====================
 document.querySelectorAll('.nav-tab').forEach(tab=>{
-  tab.addEventListener('click', ()=>{
+  tab.addEventListener('click', async ()=>{
     document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
     const target = tab.dataset.tab;
     document.getElementById('castView').style.display = target==='cast' ? 'block' : 'none';
     document.getElementById('historyView').style.display = target==='history' ? 'block' : 'none';
-    if(target==='history') renderHistory(document.getElementById('historySearch').value);
+    if(target==='history') await refreshRecords();
   });
 });
 
-renderHistory('');
 
 </script>
 </body>
