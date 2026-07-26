@@ -266,6 +266,8 @@
   }
   .yao-ci-quote .yc-name{color:var(--jade);font-weight:600;margin-right:6px;}
   .yao-ci-quote .yc-source{display:block;font-family:'Noto Sans TC',sans-serif;font-size:11px;color:#9a917a;margin-top:6px;letter-spacing:0.05em;}
+  .yao-ci-quote .yc-terms{display:block;font-family:'Noto Sans TC',sans-serif;font-size:12px;color:#6b6250;margin-top:8px;line-height:1.8;}
+  .yao-ci-quote .yc-terms b{color:var(--cinnabar);font-family:'Noto Serif TC',serif;}
   .yao-body{font-size:13.5px;color:#3a3428;line-height:2;}
   .yao-body b{color:var(--jade);font-family:'Noto Serif TC',serif;}
   .yao-tags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
@@ -362,14 +364,17 @@
       <div class="seal" id="seal">誠意<br>正心</div>
       <div class="gua-title">本卦 · <span id="benguaName"></span></div>
       <div class="lunar-line" id="lunarDate"></div>
+      <div class="yao-ci-quote" id="guaCiQuote"></div>
       <div class="hexblock">
         <div class="lines-col" id="lines"></div>
         <div class="gua-meta">
           <div class="row"><span class="k">上卦（外）</span><span class="v" id="upperName"></span></div>
           <div class="row"><span class="k">下卦（內）</span><span class="v" id="lowerName"></span></div>
+          <div class="row"><span class="k">互卦</span><span class="v" id="huGuaRow"></span></div>
           <div class="row"><span class="k">動爻</span><span class="v" id="movingLine"></span></div>
           <div class="row"><span class="k">體卦</span><span class="v tag-ti" id="tiGua"></span></div>
           <div class="row"><span class="k">用卦</span><span class="v tag-yong" id="yongGua"></span></div>
+          <div class="row"><span class="k">方位</span><span class="v" id="directionRow"></span></div>
         </div>
       </div>
 
@@ -477,6 +482,72 @@ const GUA_NAMES = [
   ['地天泰','地澤臨','地火明夷','地雷復','地風升','地水師','地山謙','坤為地']
 ];
 function guaName(upperIdx, lowerIdx){ return GUA_NAMES[upperIdx-1][lowerIdx-1]; }
+
+// ---- 64卦卦辭原文（周易經文），依 [上卦索引][下卦索引] 查詢 ----
+const GUA_CI = [
+  ['元亨利貞。','履虎尾，不咥人，亨。','同人於野，亨。利涉大川，利君子貞。','元亨利貞。其匪正有眚，不利有攸往。','女壯，勿用取女。','有孚，窒惕，中吉；終兇。利見大人，不利涉大川。','亨，小利貞。','否之匪人，不利君子貞，大往小來。'],
+  ['揚於王庭，孚號有厲；告自邑，不利即戎，利有攸往。','亨，利貞。','巳日乃孚，元亨利貞，悔亡。','元亨，利貞，無咎。','棟橈；利有攸往，亨。','亨。貞，大人吉，無咎；有言不信。','亨，利貞。取女吉。','亨，王假有廟，利見大人，亨，利貞；用大牲吉，利有攸往。'],
+  ['元亨。','小事吉。','利貞，亨。畜牝牛，吉。','亨，利用獄。','元吉，亨。','亨，小狐汔濟，濡其尾，無攸利。','小亨，旅貞吉。','康侯用錫馬蕃庶，晝日三接。'],
+  ['利貞。','徵兇，無攸利。','亨，王假之；勿憂，宜日中。','亨。震來虩虩，笑言啞啞。震驚百里，不喪匕鬯。','亨，無咎，利貞，利有攸往。','利西南。無所往，其來複吉。有攸往，夙吉。','亨，利貞；可小事，不可大事；飛鳥遺之音，不宜上，宜下，大吉。','利建侯，行師。'],
+  ['亨。密雲不雨，自我西郊。','豚魚吉，利涉大川，利貞。','利女貞。','利有攸往，利涉大川。','小亨，利有攸往，利見大人。','亨，王假有廟，利涉大川，利貞。','女歸吉，利貞。','盥而不薦，有孚顒若。'],
+  ['有孚，光亨，貞吉，利涉大川。','亨，苦節，不可貞。','亨小，利貞。初吉終亂。','元亨，利貞；勿用有攸往，利建侯。','改邑不改井，無喪無得，往來井井；汔至，亦未繘井，羸其瓶，兇。','有孚，維心亨。行有尚。','利西南，不利東北；利見大人，貞吉。','吉。原筮，元永貞，無咎。不寧方來，後夫兇。'],
+  ['利貞，不家食，吉；利涉大川。','有孚，元吉，無咎，可貞，利有攸往。曷之用？二簋可用享。','亨，小利有攸往。','貞吉，觀頤，自求口實。','元亨，利涉大川。先甲三日，後甲三日。','亨。匪我求童蒙，童蒙求我。初筮告，再三瀆，瀆則不告。利貞。','艮其背，不獲其身；行其庭，不見其人，無咎。','不利有攸往。'],
+  ['小往大來，吉，亨。','元亨，利貞；至於八月，有兇。','利艱貞。','亨。出入無疾，朋來無咎。反覆其道，七日來複，利有攸往。','元亨，用見大人，勿恤。南征吉。','貞，丈人吉，無咎。','亨，君子有終。','元亨，利牝馬之貞。君子有攸往，先迷，後得主，利。西南得朋，東北喪朋。安貞吉。'],
+];
+function guaCi(upperIdx, lowerIdx){ return GUA_CI[upperIdx-1][lowerIdx-1]; }
+
+// ---- 八卦方位（後天八卦方位，通行標準） ----
+const TRIGRAM_DIRECTION = {
+  '乾':'西北', '兌':'西', '離':'南', '震':'東',
+  '巽':'東南', '坎':'北', '艮':'東北', '坤':'西南'
+};
+
+// ---- 互卦：本卦2、3、4爻為互卦下卦，3、4、5爻為互卦上卦 ----
+function huGuaIdx(fullLines){
+  const lowerLines = [fullLines[1], fullLines[2], fullLines[3]];
+  const upperLines = [fullLines[2], fullLines[3], fullLines[4]];
+  function findIdx(arr){
+    for(let i=0;i<LINES.length;i++){ if(LINES[i].every((v,idx)=>v===arr[idx])) return i+1; }
+  }
+  return { upperIdx: findIdx(upperLines), lowerIdx: findIdx(lowerLines) };
+}
+
+// ---- 爻辭固定判斷用語（吉凶悔吝等）的通行釋義，用來輔助解讀爻辭，而非逐句翻譯全文 ----
+const JUDGMENT_TERMS = [
+  {term:'元吉', gloss:'大吉，最好的結果'},
+  {term:'大吉', gloss:'大吉'},
+  {term:'無不利', gloss:'沒有不利的地方'},
+  {term:'无不利', gloss:'沒有不利的地方'},
+  {term:'無咎', gloss:'雖有小過失，但不至於招來災禍，行事上還算站得住'},
+  {term:'无咎', gloss:'雖有小過失，但不至於招來災禍，行事上還算站得住'},
+  {term:'悔亡', gloss:'原本會有的懊悔、麻煩消失了'},
+  {term:'利涉大川', gloss:'適合涉險、跨出重大的一步'},
+  {term:'貞吉', gloss:'守持正道、堅持下去則吉'},
+  {term:'貞厲', gloss:'即使守持正道，處境仍然艱危，需要戒慎'},
+  {term:'貞兇', gloss:'即使守持正道，結果仍然不利，需格外謹慎'},
+  {term:'吉', gloss:'吉，結果對你有利'},
+  {term:'兇', gloss:'凶，結果對你不利，是全爻辭裡最直接的警示字'},
+  {term:'凶', gloss:'凶，結果對你不利，是全爻辭裡最直接的警示字'},
+  {term:'吝', gloss:'吝，會有麻煩、遺憾或不夠光彩，但還不到凶的地步'},
+  {term:'厲', gloss:'厲，處境艱危、有風險，需要提高警覺'},
+  {term:'悔', gloss:'悔，會有懊悔、後續要收拾的狀況'},
+  {term:'咎', gloss:'咎，會招來過失或責難'}
+];
+function annotateJudgmentTerms(text){
+  const found = [];
+  const used = new Set();
+  for(const {term, gloss} of JUDGMENT_TERMS){
+    if(text.includes(term) && !used.has(term)){
+      // 避免「無咎」被拆成「咎」重複標注
+      if((term==='咎' && (text.includes('無咎')||text.includes('无咎'))) ) continue;
+      if((term==='凶'||term==='兇') && used.has('貞兇')) continue;
+      found.push({term, gloss});
+      used.add(term);
+    }
+  }
+  return found;
+}
+
 
 // ---- 384爻爻辭原文（周易經文），依 [上卦索引][下卦索引][爻位1-6] 查詢 ----
 // 資料來源：整理自公開易經結構化資料集，並與維基文庫《周易》逐條比對校正過已知錯字（如乾卦九二誤植為「見龍再田」已修正為「見龍在田」）。
@@ -689,12 +760,25 @@ const ACTION_CATEGORY_DEFAULT = {
 // 明確的「要不要做」決策建議：直接對應吉/中/凶三個等級，
 // 用詞給出清楚的結論，但同時保留必要的保留條件，避免變成過度自信的斷言。
 const DECISION_BY_LEVEL = {
-  '吉':{ verdict:'這個時間點可以進行', note:'卦象結構在三種情況中最有利，代表阻力相對較低，但這不是成功的保證——真正該不該做，仍要你自己評估現實條件是否成熟。' },
-  '中':{ verdict:'可以做，但建議先縮小規模或延後', note:'體用力量相當，卦象本身沒有明確的有利或不利傾向；若一定要有結論，這種情況通常「先小規模試探或延後決定」會比貿然全力投入更穩妥。' },
-  '凶':{ verdict:'這個時間點不建議進行', note:'卦象結構顯示外部制約較大，如果不是非做不可，建議先觀望；若情勢不允許再等，務必大幅降低風險與投入規模。' }
+  '吉':{ verdict:'這個時間點可以進行', note:'三種等級裡最有利的一種，阻力小、結構上支持推進。但卦象只講結構，不講執行——事情要不要成，還是看你實際怎麼做。' },
+  '中':{ verdict:'可以做，但先縮小規模或延後', note:'體用力量相當，卦象沒有明顯偏向。這種情況下貿然全力投入沒有結構優勢，先小規模試探或延後比較合理。' },
+  '凶':{ verdict:'這個時間點不建議進行', note:'外部制約明顯大於你能掌控的部分，貿然推進吃虧的機率較高。不是絕對不能做，是這個時間點做，條件對你不利。' }
 };
 
-function buildVerdict(relKey, relLevel, moveLine, category, q, yongName, yongEl, yongIdx, baseDate){
+// ---- 五行旺相：當令月份對照，用於應期的第三種交叉驗證 ----
+const ELEMENT_MONTHS = {'木':[1,2], '火':[4,5], '金':[7,8], '水':[10,11], '土':[3,6,9,12]};
+const MONTH_BRANCH = ['','寅','卯','辰','巳','午','未','申','酉','戌','亥','子','丑'];
+function nearestSeasonMonth(currentMonth, element){
+  const months = ELEMENT_MONTHS[element];
+  let best = null, bestDist = 99;
+  for(const m of months){
+    const dist = (m - currentMonth + 12) % 12;
+    if(dist < bestDist){ bestDist = dist; best = m; }
+  }
+  return { month: best, monthsAway: bestDist };
+}
+
+function buildVerdict(relKey, relLevel, moveLine, category, q, yongName, yongEl, yongIdx, baseDate, lunarMonth){
   const lv = LEVEL3[relLevel];
   const trend = TREND_BY_RELATION[relKey];
 
@@ -705,13 +789,19 @@ function buildVerdict(relKey, relLevel, moveLine, category, q, yongName, yongEl,
   // 數字應期：用卦先天數 + 動爻數，往後推算對應天數的具體日期
   const N = yongIdx + moveLine;
   const numDate = addDays(baseDate, N);
-  const numText = `以「用卦數＋動爻數」（${yongIdx}＋${moveLine}＝${N}）往後推算，約在 <b>${fmtDate(numDate)}（週${fmtWeekday(numDate)}）</b>前後，是這件事初步見分曉的時間點。`;
+  const numText = `數字法——用卦數＋動爻數（${yongIdx}＋${moveLine}＝${N}），往後推 ${N} 天，落在 <b>${fmtDate(numDate)}（週${fmtWeekday(numDate)}）</b>前後。`;
 
   // 干支應期：用卦五行所對應的地支日，最近一次出現的具體日期
   const ed = nearestElementDay(baseDate, yongEl);
-  const gzText = ed ? `另依用卦五行「${yongName}屬${yongEl}」推算，最近一個相應的干支日是 <b>${fmtDate(ed.date)}（${ed.stem}${ed.branch}日）</b>，這天前後容易出現關鍵的人事物或轉折訊息。` : '';
+  const gzText = ed ? `干支法——用卦「${yongName}」屬${yongEl}，最近一個相應的干支日是 <b>${fmtDate(ed.date)}（${ed.stem}${ed.branch}日）</b>。` : '';
 
-  const signal = `${SIGNAL_BY_LINE[moveLine]}${TIMEFRAME_BY_LINE[moveLine]}。${numText}${gzText}`;
+  // 五行旺相：當令月份
+  const season = nearestSeasonMonth(lunarMonth, yongEl);
+  const seasonText = season.monthsAway === 0
+    ? `旺相法——現在（農曆${lunarMonth}月）正是${yongName}（${yongEl}）當令的月份，三法裡這一項最直接印證。`
+    : `旺相法——${yongName}（${yongEl}）要到農曆${season.month}月（${MONTH_BRANCH[season.month]}月）才轉旺，還要約 ${season.monthsAway} 個月。`;
+
+  const signal = `${SIGNAL_BY_LINE[moveLine]}${TIMEFRAME_BY_LINE[moveLine]}。三種應期算法交叉看：${numText}${gzText}${seasonText}`;
   const catAction = (ACTION_CATEGORY[category] && ACTION_CATEGORY[category][lv.label]) || ACTION_CATEGORY_DEFAULT[lv.label];
   const action = `${ACTION_BASE[lv.label]}${catAction}`;
   const trendPrefix = q ? `針對「${q}」這件事：` : '';
@@ -827,22 +917,32 @@ async function cast(){
   const cUpper = TRIGRAMS[cUpperIdx-1];
   const cLower = TRIGRAMS[cLowerIdx-1];
 
+  // 互卦
+  const hu = huGuaIdx(full);
+  const huUpper = TRIGRAMS[hu.upperIdx-1];
+  const huLower = TRIGRAMS[hu.lowerIdx-1];
+
   // render
   document.getElementById('result').style.display = 'block';
   document.getElementById('benguaName').textContent = `${guaName(upperIdx,lowerIdx)}（${upper.name}上${lower.name}下）`;
   document.getElementById('lunarDate').textContent = `${ganZhiYear(year)}年 ${cnMonthDay(month,day,lunar.isLeap)} · ${BRANCHES[hourNum-1]}時`;
+  document.getElementById('guaCiQuote').innerHTML = `<span class="yc-name">卦辭</span>「${guaCi(upperIdx,lowerIdx)}」<span class="yc-source">《周易》${guaName(upperIdx,lowerIdx)}卦・原文</span>` +
+    (annotateJudgmentTerms(guaCi(upperIdx,lowerIdx)).length ? `<span class="yc-terms">關鍵判斷字：${annotateJudgmentTerms(guaCi(upperIdx,lowerIdx)).map(t=>`<b>${t.term}</b>＝${t.gloss}`).join('；')}</span>` : '');
   document.getElementById('upperName').textContent = `${upper.name} ${upper.symbol}（${upper.nature}）`;
   document.getElementById('lowerName').textContent = `${lower.name} ${lower.symbol}（${lower.nature}）`;
+  document.getElementById('huGuaRow').textContent = `${guaName(hu.upperIdx,hu.lowerIdx)}（${huUpper.name}上${huLower.name}下）`;
   document.getElementById('movingLine').textContent = `第 ${moveLine} 爻`;
   document.getElementById('tiGua').textContent = `${ti.name}（${ti.el}）`;
   document.getElementById('yongGua').textContent = `${yong.name}（${yong.el}）`;
+  document.getElementById('directionRow').textContent = `體${ti.name}屬${TRIGRAM_DIRECTION[ti.name]}・用${yong.name}屬${TRIGRAM_DIRECTION[yong.name]}`;
   document.getElementById('verdictLevel').textContent = rel.level;
   document.getElementById('verdictRel').textContent = rel.rel + ' — ' + rel.note;
+
 
   const q = document.getElementById('question').value.trim();
 
   const yongIdx = isTi_lower ? upperIdx : lowerIdx;
-  const vb = buildVerdict(rel.rel, rel.level, moveLine, activeCat, q, yong.name, yong.el, yongIdx, now);
+  const vb = buildVerdict(rel.rel, rel.level, moveLine, activeCat, q, yong.name, yong.el, yongIdx, now, month);
   const vbBadge = document.getElementById('vbBadge');
   vbBadge.textContent = vb.label;
   vbBadge.className = 'vb-badge ' + vb.cls;
@@ -853,23 +953,26 @@ async function cast(){
   document.getElementById('vbSignal').innerHTML = vb.signal;
   document.getElementById('vbAction').textContent = vb.action;
 
-  // 卦理說明：體/用角色依分類具體化、貼合問題情境，但判斷邏輯仍純粹來自五行生克結構
+  // 卦理說明：體/用角色依分類具體化、貼合問題情境，判斷邏輯純粹來自五行生克結構
   const role = TI_YONG_ROLE[activeCat] || TI_YONG_ROLE[''];
   const qClause = q ? `在你所問的「${q}」這件事上，` : '';
-  const guaLi = `本卦為<b>${guaName(upperIdx,lowerIdx)}</b>（${upper.name}上${lower.name}下）。${qClause}體卦為<b>${ti.name}</b>（${ti.el}，${ti.trait}），對應${role.ti}；用卦為<b>${yong.name}</b>（${yong.el}，${yong.trait}），對應${role.yong}。兩者關係為<b>${rel.rel}</b>：${rel.note}。這個判斷純粹來自五行生克的結構關係，體／用角色雖然依你選的分類具體化，但吉凶結論不會因為你想聽到什麼答案而改變——同樣的卦象結構，結論是固定的。`;
+  const pathNote = `發展路徑：<b>${guaName(upperIdx,lowerIdx)}</b>（現況）→ <b>${guaName(hu.upperIdx,hu.lowerIdx)}</b>（過程中真正起作用的力量）→ <b>${guaName(cUpperIdx,cLowerIdx)}</b>（走向的結局）。本卦${upper.name}上${lower.name}下，互卦${huUpper.name}上${huLower.name}下，變卦${cUpper.name}上${cLower.name}下——這條路徑是同一組數字算出來的固定結果，不會因為你希望它怎麼發展而改變。`;
+  const guaLi = `本卦為<b>${guaName(upperIdx,lowerIdx)}</b>（${upper.name}上${lower.name}下）。${qClause}體卦為<b>${ti.name}</b>（${ti.el}，${ti.trait}），對應${role.ti}；用卦為<b>${yong.name}</b>（${yong.el}，${yong.trait}），對應${role.yong}。兩者關係為<b>${rel.rel}</b>：${rel.note}。方位上，體${ti.name}屬${TRIGRAM_DIRECTION[ti.name]}、用${yong.name}屬${TRIGRAM_DIRECTION[yong.name]}，與這件事相關的人事、機緣偏向這兩個方向。<br><br>${pathNote}`;
   const guaLiApplied = q
-    ? `<br><br>換句話說，以你的處境對照用卦一方，${CATEGORY_NOTE[activeCat] || CATEGORY_NOTE['']}上述體用關係可作為<b>參考依據</b>，但它只反映卦象結構上的傾向，不是對結果的保證——實際結果仍取決於事情本身的條件與你之後的行動。`
+    ? `<br><br>對照你問的「${q}」：${CATEGORY_NOTE[activeCat] || CATEGORY_NOTE['']}上面這套體用生克與發展路徑，就是卦象給出的結構性答案——它不會因為你想聽到哪種結果而不同。`
     : '';
   document.getElementById('interpText').innerHTML = guaLi + guaLiApplied;
 
   document.getElementById('changeNote').innerHTML =
     `第 ${moveLine} 爻動，變為 <b>${guaName(cUpperIdx,cLowerIdx)}</b>（${cUpper.name}上${cLower.name}下）——此為事態後續演變之勢，若初象未如意，亦可留意此變化方向。`;
 
-  // 動爻解法：當位、中位、相應 ＋ 爻辭原文
+  // 動爻解法：當位、中位、相應 ＋ 爻辭原文 ＋ 判斷用語釋義
   const lt = lineTheory(full, moveLine);
   const ciText = yaoCiText(upperIdx, lowerIdx, moveLine);
+  const terms = annotateJudgmentTerms(ciText);
   document.getElementById('yaoCiQuote').innerHTML =
-    `<span class="yc-name">${lt.name}</span>「${ciText}」<span class="yc-source">《周易》${guaName(upperIdx,lowerIdx)}卦・原文</span>`;
+    `<span class="yc-name">${lt.name}</span>「${ciText}」<span class="yc-source">《周易》${guaName(upperIdx,lowerIdx)}卦・原文</span>` +
+    (terms.length ? `<br><span class="yc-terms">關鍵判斷字：${terms.map(t=>`<b>${t.term}</b>＝${t.gloss}`).join('；')}</span>` : '');
 
   const yaoTagsHtml = [
     `<span class="yao-tag">${lt.name}　${lt.isYang?'陽爻（一）':'陰爻（--）'}</span>`,
@@ -881,16 +984,16 @@ async function cast(){
   document.getElementById('yaoBody').innerHTML =
     `本卦動爻為 <b>${lt.name}</b>，位居第 ${moveLine} 爻（${moveLine%2===1?'陽位':'陰位'}），爻本身為<b>${lt.isYang?'陽':'陰'}</b>。` +
     `${lt.proper
-      ? '陽爻居陽位、或陰爻居陰位，稱為「當位」（得正）——這代表此爻所反映的處境，性質與位置相符，行事相對穩妥、名正言順，是結構上較為有利的細節。'
-      : '爻的陰陽與所居爻位不合，稱為「不當位」（失正）——這代表此爻所反映的處境，性質與位置有落差，行事容易碰到名不正言不順的阻力，需要更謹慎處理細節，不能只憑一股衝勁。'
+      ? '陽爻居陽位、或陰爻居陰位，稱為「當位」（得正）——處境的性質與位置相符，行事站得住腳，是結構上有利的細節。'
+      : '爻的陰陽與所居爻位不合，稱為「不當位」（失正）——處境的性質與位置有落差，行事容易碰到名不正言不順的阻力，這是結構上不利的細節，不用美化它。'
     } ` +
-    `${lt.isMiddle ? '此爻恰好居於「中位」（六爻中的第二、第五爻），中位在傳統爻位理論裡向來是相對有利的位置，代表行事有節制、不偏不倚，即使不當位，也能因居中而有所緩解。 ' : ''}` +
+    `${lt.isMiddle ? '此爻居於「中位」（六爻中的第二、第五爻），是相對有利的位置，即使不當位也能因居中而緩解。 ' : ''}` +
     `與之相應的是第 <b>${lt.pairPos}</b> 爻（<b>${lt.pairName}</b>）——` +
     `${lt.responds
-      ? '兩爻陰陽相反，稱為「相應」，代表這件事目前具備外部條件的配合，內外能互相呼應，較容易得到助力。'
-      : '兩爻陰陽相同，稱為「不相應」，代表這件事目前缺乏外部呼應，較需要靠自己主動推動，不能只被動等待外力介入。'
+      ? '兩爻陰陽相反，稱為「相應」，外部條件會配合，內外能呼應。'
+      : '兩爻陰陽相同，稱為「不相應」，目前缺乏外部呼應，得靠自己主動推動，不會有人自動配合。'
     }` +
-    `<br><br>上面引的「${ciText}」就是這一爻在《周易》原文裡的文字依據，是三千年前留下的古文，用字精簡、多用具體物象打比方，歷代注家的解讀本來就不完全一致，這裡不擅自把它翻譯成單一定論。${q ? `對照你問的「${q}」，` : '若要對應到具體問題，'}比較穩妥的做法是把這句原文當作意象參考，實際判斷仍以上面「當位／中位／相應」的結構分析，以及前面體用生克算出的${vb.label}與決策建議為準——這樣才不會因為古文一句話的字面聯想，蓋過了整體卦象算出來的結論。`;
+    `<br><br>爻辭原文「${ciText}」裡的判斷字（見上方標註）意思是固定的、有明確依據；但爻辭中間那些具體物象（例如卦裡提到的動作或情境）是三千年前的比喻寫法，逐句直翻容易失真，這裡不做無根據的字面翻譯，改用${q ? `你問的「${q}」對照` : '結構分析對照'}上面「當位／中位／相應」與體用生克算出的<b>${vb.label}</b>來下判斷——這是卦象裡確定、算得出來的部分。`;
 
   // 詳細推算過程
   const upperRaw = upperSum % 8;
@@ -933,7 +1036,12 @@ async function cast(){
       <div class="calc-eq">用卦「${yong.name}」屬${yong.el}，對應地支：${BRANCH_TARGETS[yong.el].join('、')}</div>
       <div class="calc-eq">自起卦時間起，往後逐日檢查地支，第一個符合者為 ${fmtDate(now)} + ${vb.ed?vb.ed.offset:'—'} 天　→　<b>${vb.ed?`${fmtDate(vb.ed.date)}（${vb.ed.stem}${vb.ed.branch}日）`:'—'}</b></div>
     </div>
-    <div class="calc-note">先天八卦數：乾1・兌2・離3・震4・巽5・坎6・艮7・坤8（相除餘0時取該數，即8或6）。上卦決定於「年支＋月＋日」，下卦再加「時支數」；動爻另以除6取餘定位。應期兩法（數字法／干支法）為梅花易數常見的兩種應期推算方式，僅供參考，傳統上不同流派對單位（日／月／年）的取捨仍有出入。</div>
+    <div class="calc-step">
+      <div class="calc-label">⑨ 應期（五行旺相法）</div>
+      <div class="calc-eq">用卦「${yong.name}」屬${yong.el}，當旺月份：農曆${ELEMENT_MONTHS[yong.el].join('、')}月</div>
+      <div class="calc-eq">目前農曆 ${month} 月，距離當旺還有 <b>${nearestSeasonMonth(month, yong.el).monthsAway} 個月</b>　→　約農曆 <b>${nearestSeasonMonth(month, yong.el).month} 月（${MONTH_BRANCH[nearestSeasonMonth(month, yong.el).month]}月）</b></div>
+    </div>
+    <div class="calc-note">先天八卦數：乾1・兌2・離3・震4・巽5・坎6・艮7・坤8（相除餘0時取該數，即8或6）。上卦決定於「年支＋月＋日」，下卦再加「時支數」；動爻另以除6取餘定位。應期三法（數字法／干支法／五行旺相法）為梅花易數常見的交叉驗證方式，三者互相印證，取其中較一致或較近的時間點參考，不同流派對單位（日／月／年）的取捨仍有出入。</div>
   `;
   document.getElementById('calcPanel').innerHTML = calcHtml;
 
